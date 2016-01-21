@@ -81,7 +81,7 @@ ncollectApp.controller('formFetchCtrl',
 				$http.get(form.url)
 					.then(function(res) {
 						var xml = res.data;
-						return db.put({
+						return db.post({
 							type: 'form',
 							title: form.title,
 							remote_id: form.remote_id,
