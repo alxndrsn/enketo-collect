@@ -13,14 +13,7 @@ ncollectApp.controller('ncollectCtrl',
 
 		$scope.errors = [];
 
-		$scope.showSettings = function() { $scope.settingsVisible = true; };
-		$scope.hideSettings = function() { $scope.settingsVisible = false; };
-
-		$scope.showFormFetch = function() { $scope.formFetchVisible = true; };
-		$scope.hideFormFetch = function() { $scope.formFetchVisible = false; };
-
-		$scope.showFormManager = function() { $scope.formManagerVisible = true; };
-		$scope.hideFormManager = function() { $scope.formManagerVisible = false; };
+		$scope.setPane = function(pane) { $scope.pane = pane; };
 
 		$scope.logError = function(err) {
 			console.log(err);
@@ -44,6 +37,7 @@ ncollectApp.controller('ncollectCtrl',
 		$q.all(ddocs)
 			.then(function() {
 				$scope.loading = false;
+				$scope.pane = 'main-menu';
 			})
 			.catch($scope.logError);
 	}
