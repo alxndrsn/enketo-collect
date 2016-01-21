@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/alxndrsn/enketo-collect#readme",
   "dependencies": {
-    "angular": "^1.4.9"
+    "angular": "^1.4.9",
+    "lodash": "^4.0.0",
+    "pouchdb": "^5.2.0"
   }
 }

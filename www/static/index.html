@@ -1,22 +1,41 @@
 <html ng-app="ncollectApp">
 <head>
 	<script src="bundle.js"></script>
+	<link rel="stylesheet" href="style.css"></link>
 </head>
 <body ng-controller="ncollectCtrl">
 	<div ng-controller="mainMenuCtrl">
 		<ul>
-			<li ng-repeat="i in menuItems">
-				{{i}}
-			</li>
+			<li><button>Fill Blank Form</button></li>
+			<li><button>Edit Saved Form</button></li>
+			<li><button>Send Finalised Form</button></li>
+			<br/>
+			<li ng-click="showFormFetch()"><button>Get Blank Form</button></li>
+			<li><button>Delete Saved Form</button></li>
 		</ul>
+		<button ng-click="showSettings()">Change Settings</button>
 	</div>
-	<button ng-click="showSettings()">Change Settings</button>
 
 	<div ng-controller="settingsCtrl" ng-show="settingsVisible">
 		<h1>Enketo Collect v{{version}}</h1>
 		<button ng-click="hideSettings()">Hide settings</button>
-		<form>
+	</div>
+
+	<div ng-controller="formFetchCtrl" ng-show="formFetchVisible">
+		<h1>Form Fetcher</h1>
+		<button ng-click="hideFormFetch()">Hide form fetch</button>
+		<div class="loader" ng-show="loading"></div>
+		<form ng-show="!loading">
+			<ul>
+				<li ng-repeat="f in availableForms">
+					<input type="checkbox" ng-model="download[f.url]"/>
+					{{f.title}}
+				</li>
+			</ul>
+			<button ng-click="toggleAll()">Toggle All</button>
+			<button ng-click="refreshAvailable()">Refresh</button>
+			<button ng-click="fetchSelected()">Get Selected</button>
 		</form>
-	<div>
+	</div>
 </body>
 </html>
