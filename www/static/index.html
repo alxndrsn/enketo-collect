@@ -37,5 +37,13 @@
 			<button ng-click="fetchSelected()">Get Selected</button>
 		</form>
 	</div>
+
+	<ol>
+		<li ng-repeat="e in errors">
+			<pre>
+{{e.date}} | {{e.err}}
+			</pre>
+		</li>
+	</ol>
 </body>
 </html>

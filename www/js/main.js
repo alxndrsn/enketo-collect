@@ -9,6 +9,8 @@ var ncollectApp = angular.module('ncollectApp', []);
 ncollectApp.controller('ncollectCtrl',
 	['$scope',
 	function($scope) {
+		$scope.errors = [];
+
 		$scope.showSettings = function() { $scope.settingsVisible = true; };
 		$scope.hideSettings = function() { $scope.settingsVisible = false; };
 
@@ -16,6 +18,7 @@ ncollectApp.controller('ncollectCtrl',
 		$scope.hideFormFetch = function() { $scope.formFetchVisible = false; };
 
 		$scope.logError = function(err) {
+			console.log(err);
 			$scope.errors.unshift({ date:new Date(), err:err });
 		};
 	}
