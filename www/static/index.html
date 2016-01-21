@@ -28,7 +28,7 @@
 		<form ng-show="!loading">
 			<ul>
 				<li ng-repeat="f in availableForms">
-					<input type="checkbox" ng-model="download[f.url]"/>
+					<input type="checkbox" ng-model="download[$index]"/>
 					{{f.title}}
 				</li>
 			</ul>
