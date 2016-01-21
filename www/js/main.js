@@ -2,13 +2,15 @@ require('angular');
 require('lodash');
 var PouchDB = require('pouchdb');
 
-var db = new PouchDB('ncollect');
+var db;
 
 var ncollectApp = angular.module('ncollectApp', []);
 
 ncollectApp.controller('ncollectCtrl',
-	['$scope',
-	function($scope) {
+	['$scope', '$q',
+	function($scope, $q) {
+		$scope.loading = true;
+
 		$scope.errors = [];
 
 		$scope.showSettings = function() { $scope.settingsVisible = true; };
@@ -17,10 +19,33 @@ ncollectApp.controller('ncollectCtrl',
 		$scope.showFormFetch = function() { $scope.formFetchVisible = true; };
 		$scope.hideFormFetch = function() { $scope.formFetchVisible = false; };
 
+		$scope.showFormManager = function() { $scope.formManagerVisible = true; };
+		$scope.hideFormManager = function() { $scope.formManagerVisible = false; };
+
 		$scope.logError = function(err) {
 			console.log(err);
 			$scope.errors.unshift({ date:new Date(), err:err });
 		};
+
+		db = new PouchDB('ncollect');
+
+		ddocs = _.map({
+			forms: function(doc) { if(doc.type === 'form') emit(doc.title); },
+		}, function(map, name) {
+			var doc = { _id:'_design/'+name, views:{} };
+			doc.views[name] = { map:map.toString() };
+
+			return db.get(doc._id)
+				.then(function(old) {
+					doc._rev = old._rev;
+					return db.put(doc);
+				})
+		});
+		$q.all(ddocs)
+			.then(function() {
+				$scope.loading = false;
+			})
+			.catch($scope.logError);
 	}
 ]);
 
@@ -35,6 +60,32 @@ ncollectApp.controller('settingsCtrl',
 	function($scope) {
 		$scope.version = '___VERSION___';
 		$scope.serverUrl = 'http://localhost:8080/';
+	}
+]);
+
+ncollectApp.controller('formManagerCtrl',
+	['$scope',
+	function($scope) {
+		$scope.refresh = function() {
+			$scope.loading = true;
+			delete $scope.forms;
+			db.query('forms', { include_docs:true })
+				.then(function(res) {
+					$scope.loading = false;
+					$scope.forms = _.map(res.rows, 'doc');
+					$scope.$apply();
+				})
+				.catch($scope.logError);
+		}
+
+		$scope.delete = function(form) {
+			$scope.loading = true;
+			db.remove({ _id:form._id, _rev:form._rev })
+				.then($scope.refresh)
+				.catch($scope.logError);
+		};
+
+		$scope.refresh();
 	}
 ]);
 
