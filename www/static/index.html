@@ -1,7 +1,15 @@
-<html>
+<html ng-app="ncollectApp">
 <head>
 	<script src="bundle.js"></script>
 </head>
-<body>
+<body ng-controller="ncollectCtrl">
+	<div ng-controller="mainMenuCtrl">
+		<ul>
+			<li ng-repeat="i in menuItems">
+				<br ng-if="i == null"/>
+				{{i}}
+			</li>
+		</ul>
+	</div>
 </body>
 </html>

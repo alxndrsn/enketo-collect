@@ -1,0 +1,22 @@
+{
+  "name": "enketo-collect",
+  "version": "0.1.0",
+  "description": "ODK Collect re-implemented with Enketo!",
+  "main": "www/js/main.js",
+  "scripts": {
+    "test": "make www-test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/alxndrsn/enketo-collect.git"
+  },
+  "author": "Alex Anderson",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/alxndrsn/enketo-collect/issues"
+  },
+  "homepage": "https://github.com/alxndrsn/enketo-collect#readme",
+  "dependencies": {
+    "angular": "^1.4.9"
+  }
+}

@@ -14,4 +14,4 @@ www-build:
 	browserify www/js/main.js -o build/www/bundle.js
 
 www-serve:
-	http-server .
+	http-server build/www
