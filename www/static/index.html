@@ -10,5 +10,13 @@
 			</li>
 		</ul>
 	</div>
+	<button ng-click="showSettings()">Change Settings</button>
+
+	<div ng-controller="settingsCtrl" ng-show="settingsVisible">
+		<h1>Enketo Collect v{{version}}</h1>
+		<button ng-click="hideSettings()">Hide settings</button>
+		<form>
+		</form>
+	<div>
 </body>
 </html>
