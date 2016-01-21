@@ -7,24 +7,24 @@
 	<div class="loader" ng-show="loading"></div>
 	<div ng-controller="mainMenuCtrl" ng-show="pane == 'main-menu'">
 		<ul>
-			<li><button>Fill Blank Form</button></li>
+			<li><button ng-click="setPane('form-edit')">Fill Blank Form</button></li>
 			<li><button>Edit Saved Form</button></li>
 			<li><button>Send Finalised Form</button></li>
 			<br/>
-			<li ng-click="setPane('form-fetch')"><button>Get Blank Form</button></li>
-			<li ng-click="setPane('form-manage')"><button>Delete Saved Form</button></li>
+			<li><button ng-click="setPane('form-fetch')">Get Blank Form</button></li>
+			<li><button ng-click="setPane('form-manage')">Delete Saved Form</button></li>
 		</ul>
 		<button ng-click="setPane('settings')">Change Settings</button>
 	</div>
 
 	<div ng-controller="settingsCtrl" ng-show="pane == 'settings'">
 		<h1>Enketo Collect v{{version}}</h1>
-		<button ng-click="setPane('main-menu')">Hide settings</button>
+		<button ng-click="setPane('main-menu')">Back</button>
 	</div>
 
 	<div ng-controller="formFetchCtrl" ng-show="pane == 'form-fetch'">
 		<h1>Form Fetcher</h1>
-		<button ng-click="setPane('main-menu')">Hide form fetch</button>
+		<button ng-click="setPane('main-menu')">Back</button>
 		<div class="loader" ng-show="loading"></div>
 		<form ng-show="!loading">
 			<ul>
@@ -41,7 +41,7 @@
 
 	<div ng-controller="formManagerCtrl" ng-show="pane == 'form-manage'">
 		<h1>Form Manager</h1>
-		<button ng-click="setPane('main-menu')">Hide form manager</button>
+		<button ng-click="setPane('main-menu')">Back</button>
 		<div class="loader" ng-show="loading"></div>
 		<form ng-show="!loading">
 			<ul>
@@ -52,6 +52,18 @@
 		</form>
 		<button ng-click="refresh()">Refresh</button>
 	</div>
+
+	<div ng-controller="formEditCtrl" ng-show="pane == 'form-edit'">
+		<button ng-click="setPane('main-menu')">Back</button>
+		<div class="loader" ng-show="loading"></div>
+		<ul ng-show="!loading && !form">
+			<li ng-repeat="f in forms">
+				<a href="#" ng-click="edit(f)">{{f.title}}</a>
+			</li>
+			<button ng-click="refresh()">Refresh</button>
+		</ul>
+	</div>
+
 	<ol>
 		<li ng-repeat="e in errors">
 			<pre>

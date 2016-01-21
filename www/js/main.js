@@ -83,6 +83,27 @@ ncollectApp.controller('formManagerCtrl',
 	}
 ]);
 
+ncollectApp.controller('formEditCtrl',
+	['$scope',
+	function($scope) {
+		$scope.refresh = function() {
+			db.query('forms', { include_docs:true })
+				.then(function(res) {
+					$scope.loading = false;
+					$scope.forms = _.map(res.rows, 'doc');
+					$scope.$apply();
+				})
+				.catch($scope.logError);
+			$scope.loading = true;
+		};
+
+		$scope.edit = function(form) {
+			$scope.form = form;
+			// TODO load enketo
+		};
+	}
+]);
+
 ncollectApp.controller('formFetchCtrl',
 	['$http', '$scope',
 	function($http, $scope) {
