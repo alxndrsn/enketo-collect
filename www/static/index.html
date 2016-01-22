@@ -8,7 +8,7 @@
 	<div ng-controller="mainMenuCtrl" ng-show="pane == 'main-menu'">
 		<ul>
 			<li><button ng-click="setPane('form-edit')">Fill Blank Form</button></li>
-			<li><button>Edit Saved Form</button></li>
+			<li><button ng-click="setPane('record-list')">Edit Saved Form</button></li>
 			<li><button>Send Finalised Form</button></li>
 			<br/>
 			<li><button ng-click="setPane('form-fetch')">Get Blank Form</button></li>
@@ -39,6 +39,22 @@
 		</form>
 	</div>
 
+	<div ng-controller="recordListCtrl" ng-show="pane == 'record-list'">
+		<h1>Edit Saved Form</h1>
+		<button ng-click="setPane('main-menu')">Back</button>
+		<div class="loader" ng-show="loading"></div>
+		<ul ng-show="!loading && records.length">
+			<li ng-repeat="r in records">
+				{{r.lastEditDate}} | {{r.formTitle}}
+			</li>
+		</ul>
+		<div ng-hide="loading || records.length">
+			<p>Nothing available to display.</p>
+			<p>Try getting and filling out a blank form.</p>
+		</div>
+		<button ng-click="refresh()">Refresh</button>
+	</div>
+
 	<div ng-controller="formManagerCtrl" ng-show="pane == 'form-manage'">
 		<h1>Form Manager</h1>
 		<button ng-click="setPane('main-menu')">Back</button>
@@ -62,16 +78,18 @@
 			</li>
 			<button ng-click="refresh()">Refresh</button>
 		</ul>
-		<div id="enketo-form" class="pages" ng-show="!loading && form"></div>
-		<div class="form-footer">
-			<label>
-				Mark form as finalised
-				<input type="checkbox" ng-model="form.finalised"/>
-			</label>
-			<button class="previous-page">&lt; Previous</button>
-			<button class="next-page">Next &gt;</button>
-			<button class="submit" ng-click="save()" ng-disabled="saving">Save</button>
-			<div class="loader inline small" ng-show="saving"></div>
+		<div id="enketo-form" ng-show="!loading && form">
+			<div class="pages"></div>
+			<div class="form-footer">
+				<label>
+					Mark form as finalised
+					<input type="checkbox" ng-model="form.finalised"/>
+				</label>
+				<button class="previous-page">&lt; Previous</button>
+				<button class="next-page">Next &gt;</button>
+				<button class="submit" ng-click="save()" ng-disabled="saving">Save</button>
+				<div class="loader inline small" ng-show="saving"></div>
+			</div>
 		</div>
 	</div>
 

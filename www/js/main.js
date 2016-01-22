@@ -68,6 +68,11 @@ ncollectApp.controller('ncollectCtrl',
 
 		ddocs = _.map({
 			forms: function(doc) { if(doc.type === 'form') emit(doc.title); },
+			records_unfinalised: function(doc) {
+				if(doc.type === 'record' && !doc.finalised) {
+					emit(doc);
+				}
+			},
 		}, function(map, name) {
 			var doc = { _id:'_design/'+name, views:{} };
 			doc.views[name] = { map:map.toString() };
@@ -77,6 +82,14 @@ ncollectApp.controller('ncollectCtrl',
 					doc._rev = old._rev;
 					return db.put(doc);
 				})
+				.catch(function(err) {
+					if(err.status !== 404) {
+						$scope.logError(err);
+						return;
+					}
+					db.put(doc)
+						.catch($scope.logError);
+				});
 		});
 		$q.all(ddocs)
 			.then(function() {
@@ -127,9 +140,33 @@ ncollectApp.controller('formManagerCtrl',
 	}
 ]);
 
+ncollectApp.controller('recordListCtrl',
+	['$scope',
+	function($scope) {
+		$scope.refresh = function() {
+			$scope.loading = true;
+			db.query('records_unfinalised', { include_docs:true })
+				.then(function(res) {
+					$scope.records = _.map(res.rows, 'doc');
+					$scope.loading = false;
+					$scope.$apply();
+				})
+				.catch(function(err) {
+					$scope.loading = false;
+					$scope.logError(err);
+					$scope.$apply();
+				});
+		};
+
+		$scope.refresh();
+	}
+]);
+
 ncollectApp.controller('formEditCtrl',
 	['$scope', 'EnketoTransform',
 	function($scope, EnketoTransform) {
+		var CONTAINER = '#enketo-form .pages';
+
 		$scope.refresh = function() {
 			db.query('forms', { include_docs:true })
 				.then(function(res) {
@@ -145,10 +182,10 @@ ncollectApp.controller('formEditCtrl',
 			$scope.loading = true;
 			EnketoTransform(jQuery.parseXML(formDoc.xml))
 				.then(function(form) {
-					$('#enketo-form').html(form.html);
+					$(CONTAINER).html(form.html);
 					$scope.form = {
 						doc: formDoc,
-						enketo: new Enketo('#enketo-form', {
+						enketo: new Enketo(CONTAINER, {
 							modelStr: form.model,
 							instanceStr: null, // TODO fill if dataDoc
 						}),
@@ -178,16 +215,19 @@ ncollectApp.controller('formEditCtrl',
 					}
 					var record = $scope.form.enketo.getDataStr();
 					var doc = {
-						record: record,
+						type: 'record',
+						data: record,
 						formId: $scope.form.doc._id,
+						formTitle: $scope.form.doc.title,
 						finalised: $scope.form.finalised,
+						lastEditDate: new Date(),
 					};
 					return db.post(doc);
 				})
 				.then(function() {
 					$scope.saving = false;
 					$scope.form = null;
-					$('#enketo-form').html('');
+					$(CONTAINER).html('');
 					$scope.$apply();
 				})
 				.catch(function(err) {
