@@ -1,10 +1,54 @@
 require('angular');
 require('lodash');
 var PouchDB = require('pouchdb');
+// set window.jQuery for enketo's sake
+var $ = window.jQuery = require('jquery');
+var Enketo = require('enketo-core');
 
 var db;
 
 var ncollectApp = angular.module('ncollectApp', []);
+
+ncollectApp.service('EnketoTransform', [
+	'$http', '$q',
+	function($http, $q) {
+		function getStylesheet(url) {
+			return $http.get(url, { responseType:'document' })
+				.then(function(res) {
+					var p = new XSLTProcessor();
+					p.importStylesheet(res.data);
+					return p;
+				});
+		}
+
+		function getStylesheets() {
+			return $q.all([
+				getStylesheet('enketo/openrosa2html5form.xsl'),
+				getStylesheet('enketo/openrosa2xmlmodel.xsl')]);
+		}
+
+		function transform(processor, xml) {
+			var transformed = processor.transformToDocument(xml);
+			var root = transformed.documentElement.firstElementChild;
+			return new XMLSerializer().serializeToString(root);
+		}
+
+		return function(xml) {
+			return getStylesheets()
+				.then(function(processors) {
+					return $q.all([
+						transform(processors[0], xml),
+						transform(processors[1], xml)]);
+				})
+				.then(function(transformed) {
+					return {
+						html: transformed[0],
+						model: transformed[1],
+					};
+				});
+		};
+	}
+]);
 
 ncollectApp.controller('ncollectCtrl',
 	['$scope', '$q',
@@ -84,8 +128,8 @@ ncollectApp.controller('formManagerCtrl',
 ]);
 
 ncollectApp.controller('formEditCtrl',
-	['$scope',
-	function($scope) {
+	['$scope', 'EnketoTransform',
+	function($scope, EnketoTransform) {
 		$scope.refresh = function() {
 			db.query('forms', { include_docs:true })
 				.then(function(res) {
@@ -97,10 +141,32 @@ ncollectApp.controller('formEditCtrl',
 			$scope.loading = true;
 		};
 
-		$scope.edit = function(form) {
-			$scope.form = form;
-			// TODO load enketo
+		$scope.edit = function(formDoc, dataDoc) {
+			$scope.loading = true;
+			EnketoTransform(jQuery.parseXML(formDoc.xml))
+				.then(function(form) {
+					$('#enketo-form').html(form.html);
+					$scope.form = {
+						doc: formDoc,
+						enketo: new Enketo('#enketo-form', {
+							modelStr: form.model,
+							instanceStr: null, // TODO fill if dataDoc
+						}),
+					};
+					var loadErrors = $scope.form.enketo.init();
+					if(loadErrors && loadErrors.length) {
+						throw new Error('Error loading form.  ' +
+								JSON.stringify(loadErrors));
+					}
+					$scope.loading = false;
+				})
+				.catch(function(err) {
+					$scope.loading = false;
+					$scope.logError(err);
+				});
 		};
+
+		$scope.refresh();
 	}
 ]);
 
