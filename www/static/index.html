@@ -5,7 +5,7 @@
 </head>
 <body ng-controller="ncollectCtrl">
 	<div class="loader" ng-show="loading"></div>
-	<div ng-controller="mainMenuCtrl" ng-show="pane == 'main-menu'">
+	<div ng-controller="mainMenuCtrl" ng-show="state.pane == 'main-menu'">
 		<ul>
 			<li><button ng-click="setPane('form-edit')">Fill Blank Form</button></li>
 			<li><button ng-click="setPane('record-list')">Edit Saved Form</button></li>
@@ -17,12 +17,12 @@
 		<button ng-click="setPane('settings')">Change Settings</button>
 	</div>
 
-	<div ng-controller="settingsCtrl" ng-show="pane == 'settings'">
+	<div ng-controller="settingsCtrl" ng-show="state.pane == 'settings'">
 		<h1>Enketo Collect v{{version}}</h1>
 		<button ng-click="setPane('main-menu')">Back</button>
 	</div>
 
-	<div ng-controller="formFetchCtrl" ng-show="pane == 'form-fetch'">
+	<div ng-controller="formFetchCtrl" ng-show="state.pane == 'form-fetch'">
 		<h1>Form Fetcher</h1>
 		<button ng-click="setPane('main-menu')">Back</button>
 		<div class="loader" ng-show="loading"></div>
@@ -39,13 +39,15 @@
 		</form>
 	</div>
 
-	<div ng-controller="recordListCtrl" ng-show="pane == 'record-list'">
+	<div ng-controller="recordListCtrl" ng-show="state.pane == 'record-list'">
 		<h1>Edit Saved Form</h1>
 		<button ng-click="setPane('main-menu')">Back</button>
 		<div class="loader" ng-show="loading"></div>
 		<ul ng-show="!loading && records.length">
 			<li ng-repeat="r in records">
 				{{r.lastEditDate}} | {{r.formTitle}}
+				<button ng-click="edit(r)">Edit</button>
+				<button ng-click="delete(r)">Delete</button>
 			</li>
 		</ul>
 		<div ng-hide="loading || records.length">
@@ -55,7 +57,7 @@
 		<button ng-click="refresh()">Refresh</button>
 	</div>
 
-	<div ng-controller="formManagerCtrl" ng-show="pane == 'form-manage'">
+	<div ng-controller="formManagerCtrl" ng-show="state.pane == 'form-manage'">
 		<h1>Form Manager</h1>
 		<button ng-click="setPane('main-menu')">Back</button>
 		<div class="loader" ng-show="loading"></div>
@@ -69,21 +71,21 @@
 		<button ng-click="refresh()">Refresh</button>
 	</div>
 
-	<div ng-controller="formEditCtrl" ng-show="pane == 'form-edit'">
+	<div ng-controller="formEditCtrl" ng-show="state.pane == 'form-edit'">
 		<button ng-click="setPane('main-menu')">Back</button>
-		<div class="loader" ng-show="loading"></div>
-		<ul ng-show="!loading && !form">
+		<div class="loader" ng-show="loading || state.enketoLoading"></div>
+		<ul ng-show="!loading && !state.form">
 			<li ng-repeat="f in forms">
 				<a href="#" ng-click="edit(f)">{{f.title}}</a>
 			</li>
 			<button ng-click="refresh()">Refresh</button>
 		</ul>
-		<div id="enketo-form" ng-show="!loading && form">
+		<div id="enketo-form" ng-show="!loading && state.form">
 			<div class="pages"></div>
 			<div class="form-footer">
 				<label>
 					Mark form as finalised
-					<input type="checkbox" ng-model="form.finalised"/>
+					<input type="checkbox" ng-model="state.form.finalised"/>
 				</label>
 				<button class="previous-page">&lt; Previous</button>
 				<button class="next-page">Next &gt;</button>

@@ -1,3 +1,5 @@
+var ENKETO_CONTAINER = '#enketo-form .pages';
+
 require('angular');
 require('lodash');
 var PouchDB = require('pouchdb');
@@ -8,6 +10,41 @@ var Enketo = require('enketo-core');
 var db;
 
 var ncollectApp = angular.module('ncollectApp', []);
+
+ncollectApp.service('AppState', [
+	function() {
+		return {
+		};
+	}
+]);
+
+ncollectApp.service('EnketoDisplay', [
+	'EnketoTransform', 'AppState',
+	function(EnketoTransform, AppState) {
+		return function(formDoc, record) {
+			AppState.enketoLoading = true;
+			return EnketoTransform(jQuery.parseXML(formDoc.xml))
+				.then(function(form) {
+					$(ENKETO_CONTAINER).html(form.html);
+					AppState.form = {
+						doc: formDoc,
+						enketo: new Enketo(ENKETO_CONTAINER, {
+							modelStr: form.model,
+							instanceStr: record && record.data,
+						}),
+						finalised: true,
+						record: record,
+					};
+					var loadErrors = AppState.form.enketo.init();
+					if(loadErrors && loadErrors.length) {
+						throw new Error('Error loading form.  ' +
+								JSON.stringify(loadErrors));
+					}
+					AppState.enketoLoading = false;
+				});
+		}
+	}
+]);
 
 ncollectApp.service('EnketoTransform', [
 	'$http', '$q',
@@ -51,13 +88,14 @@ ncollectApp.service('EnketoTransform', [
 ]);
 
 ncollectApp.controller('ncollectCtrl',
-	['$scope', '$q',
-	function($scope, $q) {
+	['$scope', '$q', 'AppState',
+	function($scope, $q, AppState) {
 		$scope.loading = true;
+		$scope.state = AppState;
 
 		$scope.errors = [];
 
-		$scope.setPane = function(pane) { $scope.pane = pane; };
+		$scope.setPane = function(pane) { $scope.state.pane = pane; };
 
 		$scope.logError = function(err) {
 			console.log(err);
@@ -94,7 +132,7 @@ ncollectApp.controller('ncollectCtrl',
 		$q.all(ddocs)
 			.then(function() {
 				$scope.loading = false;
-				$scope.pane = 'main-menu';
+				$scope.state.pane = 'main-menu';
 			})
 			.catch($scope.logError);
 	}
@@ -141,8 +179,8 @@ ncollectApp.controller('formManagerCtrl',
 ]);
 
 ncollectApp.controller('recordListCtrl',
-	['$scope',
-	function($scope) {
+	['$scope', 'EnketoDisplay',
+	function($scope, EnketoDisplay) {
 		$scope.refresh = function() {
 			$scope.loading = true;
 			db.query('records_unfinalised', { include_docs:true })
@@ -158,14 +196,34 @@ ncollectApp.controller('recordListCtrl',
 				});
 		};
 
+		$scope.delete = function(record) {
+			db.remove(record)
+				.then($scope.refresh)
+				.catch($scope.logError);
+		};
+
+		$scope.edit = function(record) {
+			db.get(record.formId)
+				.then(function(formDoc) {
+					$scope.setPane('form-edit');
+					EnketoDisplay(formDoc, record)
+						.catch(function(err) {
+							$scope.state.enketoLoading = false;
+							$scope.logError(err);
+						});
+					$scope.$apply();
+				})
+				.catch($scope.logError);
+		};
+
 		$scope.refresh();
 	}
 ]);
 
 ncollectApp.controller('formEditCtrl',
-	['$scope', 'EnketoTransform',
-	function($scope, EnketoTransform) {
-		var CONTAINER = '#enketo-form .pages';
+	['$scope', 'AppState', 'EnketoDisplay',
+	function($scope, AppState, EnketoDisplay) {
+		$scope.state = AppState;
 
 		$scope.refresh = function() {
 			db.query('forms', { include_docs:true })
@@ -178,56 +236,39 @@ ncollectApp.controller('formEditCtrl',
 			$scope.loading = true;
 		};
 
-		$scope.edit = function(formDoc, dataDoc) {
-			$scope.loading = true;
-			EnketoTransform(jQuery.parseXML(formDoc.xml))
-				.then(function(form) {
-					$(CONTAINER).html(form.html);
-					$scope.form = {
-						doc: formDoc,
-						enketo: new Enketo(CONTAINER, {
-							modelStr: form.model,
-							instanceStr: null, // TODO fill if dataDoc
-						}),
-						finalised: true,
-					};
-					var loadErrors = $scope.form.enketo.init();
-					if(loadErrors && loadErrors.length) {
-						throw new Error('Error loading form.  ' +
-								JSON.stringify(loadErrors));
-					}
-					$scope.loading = false;
-				})
+		$scope.edit = function(formDoc, record) {
+			EnketoDisplay(formDoc, record)
 				.catch(function(err) {
-					$scope.loading = false;
+					$scope.state.enketoLoading = false;
 					$scope.logError(err);
 				});
 		};
 
 		$scope.save = function() {
 			$scope.saving = true;
-			$scope.form.enketo.validate()
+			$scope.state.form.enketo.validate()
 				.then(function(valid) {
 					if(!valid) {
 						$scope.saving = false;
 						$scope.$apply();
 						return;
 					}
-					var record = $scope.form.enketo.getDataStr();
-					var doc = {
+					var data = $scope.state.form.enketo.getDataStr();
+					var doc = $scope.state.form.record || {
 						type: 'record',
-						data: record,
-						formId: $scope.form.doc._id,
-						formTitle: $scope.form.doc.title,
-						finalised: $scope.form.finalised,
-						lastEditDate: new Date(),
+						formId: $scope.state.form.doc._id,
+						formTitle: $scope.state.form.doc.title,
 					};
+					doc.data = data;
+					doc.finalised = $scope.state.form.finalised;
+					doc.lastEditDate = new Date();
+
 					return db.post(doc);
 				})
 				.then(function() {
 					$scope.saving = false;
-					$scope.form = null;
-					$(CONTAINER).html('');
+					$scope.state.form = null;
+					$(ENKETO_CONTAINER).html('');
 					$scope.$apply();
 				})
 				.catch(function(err) {
