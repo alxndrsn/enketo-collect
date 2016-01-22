@@ -166,6 +166,35 @@ ncollectApp.controller('formEditCtrl',
 				});
 		};
 
+		$scope.save = function() {
+			$scope.saving = true;
+			$scope.form.enketo.validate()
+				.then(function(valid) {
+					if(!valid) {
+						$scope.saving = false;
+						$scope.$apply();
+						return;
+					}
+					var record = $scope.form.enketo.getDataStr();
+					var doc = {
+						record: record,
+						formId: $scope.form.doc._id,
+					};
+					return db.post(doc);
+				})
+				.then(function() {
+					$scope.saving = false;
+					$scope.form = null;
+					$('#enketo-form').html('');
+					$scope.$apply();
+				})
+				.catch(function(err) {
+					$scope.saving = false;
+					$scope.$apply();
+					$scope.logError(err);
+				});
+		}
+
 		$scope.refresh();
 	}
 ]);

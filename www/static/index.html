@@ -62,7 +62,13 @@
 			</li>
 			<button ng-click="refresh()">Refresh</button>
 		</ul>
-		<div id="enketo-form" ng-show="!loading && form"></div>
+		<div id="enketo-form" class="pages" ng-show="!loading && form"></div>
+		<div class="form-footer">
+			<button class="previous-page">&lt; Previous</button>
+			<button class="next-page">Next &gt;</button>
+			<button class="submit" ng-click="save()" ng-disabled="saving">Save</button>
+			<div class="loader inline small" ng-show="saving"></div>
+		</div>
 	</div>
 
 	<ol>
