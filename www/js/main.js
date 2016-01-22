@@ -152,6 +152,7 @@ ncollectApp.controller('formEditCtrl',
 							modelStr: form.model,
 							instanceStr: null, // TODO fill if dataDoc
 						}),
+						finalised: true,
 					};
 					var loadErrors = $scope.form.enketo.init();
 					if(loadErrors && loadErrors.length) {
@@ -179,6 +180,7 @@ ncollectApp.controller('formEditCtrl',
 					var doc = {
 						record: record,
 						formId: $scope.form.doc._id,
+						finalised: $scope.form.finalised,
 					};
 					return db.post(doc);
 				})
