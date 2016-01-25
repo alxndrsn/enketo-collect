@@ -23,5 +23,11 @@
     "jquery": "^2.2.0",
     "lodash": "^4.0.0",
     "pouchdb": "^5.2.0"
+  },
+  "devDependencies": {
+    "grunt": "0.4.x",
+    "grunt-sass": "1.1.x",
+    "load-grunt-tasks": "3.x.x",
+    "time-grunt": "1.x.x"
   }
 }
