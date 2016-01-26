@@ -1,11 +1,11 @@
-.PHONY: default init www www-build www-serve
+.PHONY: default init www www-build www-serve www-clean www-static www-xslt www-enketo-styles www-styles www-js
 
 default: www
 	
 init:
 	npm install -g browserify http-server less
 
-www: www-build www-serve www-clean www-static www-xslt www-enketo-styles www-styles www-js
+www: www-build www-serve
 
 www-clean:
 	rm -rf build/www
@@ -39,7 +39,7 @@ www-js:
 	echo '[www-js] Concatting JS...'
 	browserify www/js/main.js -o build/www/bundle.js
 
-www-build: www-clean www-static www-xslt www-styles www-js
+www-build: jshint www-clean www-static www-xslt www-styles www-js
 
 www-serve:
 	http-server build/www
