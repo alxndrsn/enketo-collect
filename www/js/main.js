@@ -9,7 +9,8 @@ var Enketo = require('enketo-core');
 
 var db;
 
-var ncollectApp = angular.module('ncollectApp', []);
+var ncollectApp = angular.module('ncollectApp', [
+]);
 
 var ADAPTERS = {
 	openrosa: {
@@ -144,10 +145,11 @@ ncollectApp.controller('ncollectCtrl',
 
 		ddocs = _.map({
 			forms: function(doc) { if(doc.type === 'form') emit(doc.title); },
+			records_finalised: function(doc) {
+				if(doc.type === 'record' && doc.finalised) emit(doc);
+			},
 			records_unfinalised: function(doc) {
-				if(doc.type === 'record' && !doc.finalised) {
-					emit(doc);
-				}
+				if(doc.type === 'record' && !doc.finalised) emit(doc);
 			},
 		}, function(map, name) {
 			var doc = { _id:'_design/'+name, views:{} };
@@ -318,6 +320,91 @@ ncollectApp.controller('formEditCtrl',
 		};
 
 		$scope.refresh();
+	}
+]);
+
+ncollectApp.controller('recordSubmitCtrl',
+	['$http', '$q', '$scope', 'Config',
+	function($http, $q, $scope, Config) {
+		$scope.refreshAvailable = function() {
+			$scope.loading = true;
+			delete $scope.finalisedRecords;
+
+			db.query('records_finalised', { include_docs:true })
+				.then(function(res) {
+					$scope.finalisedRecords = _.map(res.rows, 'doc');
+					$scope.loading = false;
+					$scope.submit = [];
+					_.each($scope.finalisedRecords, function(f, i) {
+						$scope.submit[i] = false;
+					});
+					$scope.$apply();
+				})
+				.catch(function(err) {
+					$scope.loading = false;
+					$scope.logError(err);
+					$scope.$apply();
+				});
+		};
+
+		$scope.toggleAll = function() {
+			var select = true;
+			if(_.every($scope.submit)) {
+				select = false;
+			}
+			_.each($scope.submit, function(d, i) {
+				$scope.submit[i] = select;
+			});
+		};
+
+		$scope.submitSelected = function() {
+			$scope.submitting = true;
+
+			var submissions = [];
+			_.each($scope.submit, function(requested, i) {
+				if(!requested) return;
+
+				var record = $scope.finalisedRecords[i];
+
+				submissions.push($q(function(resolve, reject) {
+					// Manually build the form submit ourself, as we need the Content-Type hader
+					// set, and Chrome seems to omit Blob content when submitting mutipart data
+					// with e.g. `FormData`.
+					var BOUNDARY = '-----FormBoundary' + Math.random().toString().substring(2);
+					var data = BOUNDARY + '\r\n' +
+							'Content-Disposition: form-data; name="xml_submission_file"\r\n' +
+							'Content-Type: text/xml\r\n' +
+							'\r\n' +
+							record.data +
+							'\r\n' + BOUNDARY;
+					$.ajax({
+						type: 'POST',
+						url: Config.serverUrl,
+						headers: {
+							'X-OpenRosa-Version': '1.0',
+							'Content-Type': 'multipart/form-data; boundary=' + BOUNDARY,
+						},
+						data: data,
+						processData: false,
+						success: resolve,
+						error: reject,
+					});
+				}));
+			});
+
+			$q.all(submissions)
+				.then(function() {
+					$scope.submitting = false;
+					$scope.refreshAvailable();
+				})
+				.catch(function(err) {
+					$scope.logError(err);
+					$scope.submitting = false;
+					$scope.refreshAvailable();
+				});
+		};
+
+		$scope.refreshAvailable();
 	}
 ]);
 
