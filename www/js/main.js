@@ -12,9 +12,39 @@ var db;
 var ncollectApp = angular.module('ncollectApp', []);
 
 ncollectApp.service('AppState', [
+	function() { return {}; }
+]);
+
+ncollectApp.service('Config', [
 	function() {
-		return {
+		var config = {};
+
+		// ONA config
+		config.serverUrl = '/samples/ona/api/v1/forms?owner=mr_alex';
+		config.translateForms2local = function(res) {
+			_.map(res.data, function(ona) {
+				var local = _.pick(ona, ['title', 'url']);
+				local.url = local.url + '/form.xml';
+				local.remote_id = ona.formid;
+				return local;
+			});
 		};
+
+		// OpenRosa config
+		config.serverUrl = '/samples/or/forms.xml';
+		config.translateForms2local = function(res) {
+			var xml = $(res.data);
+			return _.map(xml.find('xform'), function(xform) {
+				xform = $(xform);
+				return {
+					title: xform.find('name').text(),
+					url: xform.find('downloadUrl').text(),
+					remote_id: xform.find('formID').text(),
+				};
+			});
+		};
+
+		return config;
 	}
 ]);
 
@@ -283,23 +313,16 @@ ncollectApp.controller('formEditCtrl',
 ]);
 
 ncollectApp.controller('formFetchCtrl',
-	['$http', '$scope',
-	function($http, $scope) {
-		function ona2local(ona) {
-			var local = _.pick(ona, ['title', 'url']);
-			local.url = local.url + '/form.xml';
-			local.remote_id = ona.formid;
-			return local;
-		}
-
+	['$http', '$scope', 'Config',
+	function($http, $scope, Config) {
 		$scope.refreshAvailable = function() {
 			$scope.loading = true;
 			delete $scope.availableForms;
 
-			$http.get('/samples/ona/api/v1/forms?owner=mr_alex')
+			$http.get(Config.serverUrl)
 				.then(function(res) {
 					$scope.loading = false;
-					$scope.availableForms = _.map(res.data, ona2local);
+					$scope.availableForms = Config.translateForms2local(res);
 					$scope.download = [];
 					_.each($scope.availableForms, function(f, i) {
 						$scope.download[i] = false;
