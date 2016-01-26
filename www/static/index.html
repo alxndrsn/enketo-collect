@@ -14,12 +14,20 @@
 			<li><button ng-click="setPane('form-fetch')">Get Blank Form</button></li>
 			<li><button ng-click="setPane('form-manage')">Delete Saved Form</button></li>
 		</ul>
-		<button ng-click="setPane('settings')">Change Settings</button>
+		<button ng-click="setPane('config')">Change Settings</button>
 	</div>
 
-	<div ng-controller="settingsCtrl" ng-show="state.pane == 'settings'">
+	<div ng-controller="configCtrl" ng-show="state.pane == 'config'">
 		<h1>Enketo Collect v{{version}}</h1>
 		<button ng-click="setPane('main-menu')">Back</button>
+		<label>
+			Server URL
+			<input type="text" ng-model="config.serverUrl"/>
+		</label>
+		<select ng-model="config.protocol">
+			<option value="ona">ONA</option>
+			<option value="openrosa">OpenRosa</option>
+		</select>
 	</div>
 
 	<div ng-controller="formFetchCtrl" ng-show="state.pane == 'form-fetch'">

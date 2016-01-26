@@ -11,28 +11,9 @@ var db;
 
 var ncollectApp = angular.module('ncollectApp', []);
 
-ncollectApp.service('AppState', [
-	function() { return {}; }
-]);
-
-ncollectApp.service('Config', [
-	function() {
-		var config = {};
-
-		// ONA config
-		config.serverUrl = '/samples/ona/api/v1/forms?owner=mr_alex';
-		config.translateForms2local = function(res) {
-			_.map(res.data, function(ona) {
-				var local = _.pick(ona, ['title', 'url']);
-				local.url = local.url + '/form.xml';
-				local.remote_id = ona.formid;
-				return local;
-			});
-		};
-
-		// OpenRosa config
-		config.serverUrl = '/samples/or/forms.xml';
-		config.translateForms2local = function(res) {
+var ADAPTERS = {
+	openrosa: {
+		translateForms2local: function(res) {
 			var xml = $(res.data);
 			return _.map(xml.find('xform'), function(xform) {
 				xform = $(xform);
@@ -42,7 +23,34 @@ ncollectApp.service('Config', [
 					remote_id: xform.find('formID').text(),
 				};
 			});
-		};
+		},
+	},
+	ona: {
+		translateForms2local: function(res) {
+			return _.map(res.data, function(ona) {
+				var local = _.pick(ona, ['title', 'url']);
+				local.url = local.url + '/form.xml';
+				local.remote_id = ona.formid;
+				return local;
+			});
+		},
+	},
+};
+
+ncollectApp.service('AppState', [
+	function() { return {}; }
+]);
+
+ncollectApp.service('Config', [
+	function() {
+		var config = {};
+
+		// ONA test URL
+		config.serverUrl = '/samples/ona/api/v1/forms?owner=mr_alex';
+
+		// OpenRosa test URL
+		config.serverUrl = '/samples/or/forms.xml';
+		config.protocol = 'openrosa';
 
 		return config;
 	}
@@ -174,9 +182,10 @@ ncollectApp.controller('mainMenuCtrl',
 	}
 ]);
 
-ncollectApp.controller('settingsCtrl',
-	['$scope',
-	function($scope) {
+ncollectApp.controller('configCtrl',
+	['$scope', 'Config',
+	function($scope, Config) {
+		$scope.config = Config;
 		$scope.version = '___VERSION___';
 		$scope.serverUrl = 'http://localhost:8080/';
 	}
@@ -322,7 +331,7 @@ ncollectApp.controller('formFetchCtrl',
 			$http.get(Config.serverUrl)
 				.then(function(res) {
 					$scope.loading = false;
-					$scope.availableForms = Config.translateForms2local(res);
+					$scope.availableForms = ADAPTERS[Config.protocol].translateForms2local(res);
 					$scope.download = [];
 					_.each($scope.availableForms, function(f, i) {
 						$scope.download[i] = false;
