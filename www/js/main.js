@@ -42,7 +42,7 @@ ncollectApp.service('EnketoDisplay', [
 					}
 					AppState.enketoLoading = false;
 				});
-		}
+		};
 	}
 ]);
 
@@ -165,7 +165,7 @@ ncollectApp.controller('formManagerCtrl',
 					$scope.$apply();
 				})
 				.catch($scope.logError);
-		}
+		};
 
 		$scope.delete = function(form) {
 			$scope.loading = true;
@@ -276,7 +276,7 @@ ncollectApp.controller('formEditCtrl',
 					$scope.$apply();
 					$scope.logError(err);
 				});
-		}
+		};
 
 		$scope.refresh();
 	}

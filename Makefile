@@ -7,6 +7,9 @@ init:
 
 www: www-build www-serve
 
+jshint:
+	jshint www/js/*.js
+
 www-clean:
 	rm -rf build/www
 	mkdir -p build/www
