@@ -37,28 +37,14 @@
       <bind calculate="'00fd62b19cb248cc9d7e6461e77d9cc1'" nodeset="/person-edit/formhub/uuid" type="string"/>
     </model>
   </h:head>
-  <h:body>
+  <h:body class="pages">
     <group ref="/person-edit/person">
-      <input appearance="hidden" ref="/person-edit/person/type">
-        <label>Person Type</label>
-        <hint>mandatory</hint>
-      </input>
-      <input appearance="hidden db-object" ref="/person-edit/person/parent">
-        <label>Parent</label>
-      </input>
       <input ref="/person-edit/person/name">
         <label>Names</label>
       </input>
       <input ref="/person-edit/person/date_of_birth">
         <label>Date of Birth</label>
       </input>
-      <select1 appearance="hidden" ref="/person-edit/person/date_of_birth_method">
-        <label>Method to select date of birth</label>
-        <item>
-          <label>Date unknown</label>
-          <value>approx</value>
-        </item>
-      </select1>
       <select1 appearance="horizontal" ref="/person-edit/person/sex">
         <label>Gender</label>
         <item>
