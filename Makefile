@@ -5,6 +5,9 @@ default: www
 init:
 	npm install -g browserify http-server less
 
+browse:
+	open http://localhost:8080 || firefox http://localhost:8080
+
 www: www-build www-serve
 
 jshint:
