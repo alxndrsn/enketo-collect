@@ -425,7 +425,10 @@ ncollectApp.controller('formFetchCtrl',
 						$scope.download[i] = false;
 					});
 				})
-				.catch($scope.logError);
+				.catch(function(err) {
+					$scope.loading = false;
+					$scope.logError(err);
+				});
 		};
 
 		$scope.toggleAll = function() {
