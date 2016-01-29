@@ -1,6 +1,17 @@
-.PHONY: default init www www-build www-serve www-clean www-static www-xslt www-enketo-styles www-styles www-js
+.PHONY: default init www www-build www-serve www-clean www-static www-xslt www-enketo-styles www-styles www-js www-minify
 
-default: www
+ADB = ${ANDROID_HOME}/platform-tools/adb
+EMULATOR = ${ANDROID_HOME}/tools/emulator
+GRADLEW = ./gradlew
+
+ifdef ComSpec	 # Windows
+  # Use `/` for all paths, except `.\`
+  ADB := $(subst \,/,${ADB})
+  EMULATOR := $(subst \,/,${EMULATOR})
+  GRADLEW := $(subst /,\,${GRADLEW})
+endif
+
+default: android
 	
 init:
 	npm install -g browserify http-server less
@@ -49,3 +60,35 @@ www-build: jshint www-clean www-static www-xslt www-styles www-js
 
 www-serve:
 	http-server build/www
+
+www-minify:
+	cp -r build/www/ build/www.min
+	echo '[www-minify] Minifying JS...'
+	uglify -s build/www/bundle.js -o build/www.min/bundle.js
+	echo '[www-minify] Minifying CSS...'
+	uglify -c -s build/www/style.css -o build/www.min/style.css
+
+.PHONY: android android-assets android-clean android-deploy android-emulator android-kill android-logs
+
+android: android-clean android-assets android-deploy
+
+android-assets: www-build www-minify
+	mkdir -p android/src/main/assets
+	cp -r build/www.min android/src/main/assets/www
+
+android-clean:
+	cd android && rm -rf src/main/assets/
+	cd android && rm -rf build/outputs/apk/
+
+android-emulator:
+	nohup ${EMULATOR} -avd test -wipe-data > emulator.log 2>&1 &
+	${ADB} wait-for-device
+
+android-logs:
+	${ADB} shell logcat
+
+android-deploy:
+	cd android && ${GRADLEW} --daemon --parallel installDebug
+
+android-kill:
+	pkill -9 emulator64-arm

@@ -1,0 +1,9 @@
+/local.properties
+/.gradle/
+/build/
+/*.log
+
+# IntelliJ IDEA files
+/.idea/
+*.iml
+/src/main/assets/
