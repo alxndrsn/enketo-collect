@@ -46,12 +46,13 @@ ncollectApp.service('Config', [
 	function() {
 		var config = {};
 
-		// ONA test URL
-		config.serverUrl = '/samples/ona/api/v1/forms?owner=mr_alex';
-
 		// OpenRosa test URL
 		config.serverUrl = '/samples/or/forms.xml';
 		config.protocol = 'openrosa';
+
+		// ONA test URL
+		config.serverUrl = '/samples/ona/api/v1/forms?owner=mr_alex';
+		config.protocol = 'ona';
 
 		return config;
 	}
