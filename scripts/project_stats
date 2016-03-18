@@ -1,0 +1,14 @@
+#!/bin/bash -eu
+stats_for() {
+	local ext="$2"
+	local location="$1"
+
+	echo "Files of type: $ext"
+	wc -l $(find "$location" -name \*."$ext")
+	echo
+}
+
+stats_for android java
+stats_for www less
+stats_for www html
+stats_for www js

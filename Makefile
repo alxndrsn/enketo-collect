@@ -1,4 +1,4 @@
-.PHONY: default init www www-build www-serve www-clean www-static www-xslt www-enketo-styles www-styles www-js www-minify
+.PHONY: default init www www-build www-serve www-clean www-static www-xslt www-enketo-styles www-styles www-js www-minify stats
 
 ADB = ${ANDROID_HOME}/platform-tools/adb
 EMULATOR = ${ANDROID_HOME}/tools/emulator
@@ -92,3 +92,6 @@ android-deploy:
 
 android-kill:
 	pkill -9 emulator64-arm
+
+stats:
+	./scripts/project_stats
