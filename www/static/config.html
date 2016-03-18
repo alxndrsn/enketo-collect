@@ -2,8 +2,12 @@
 <label>
 	Server URL
 	<input type="text" ng-model="config.serverUrl"/>
+	<select ng-model="config.protocol">
+		<option value="ona">ONA</option>
+		<option value="openrosa">OpenRosa</option>
+	</select>
 </label>
-<select ng-model="config.protocol">
-	<option value="ona">ONA</option>
-	<option value="openrosa">OpenRosa</option>
-</select>
+<label ng-if="smsSupported">
+	Server Phone Number
+	<input type="text" ng-model="config.serverPhoneNumber"/>
+</label>

@@ -21,6 +21,7 @@ public class JsUtils {
 	private final BrowserActivity parent;
 
 	private LocationManager locationManager;
+	private SmsSender smsSender;
 
 	public JsUtils(BrowserActivity parent) {
 		this.parent = parent;
@@ -28,6 +29,10 @@ public class JsUtils {
 
 	public void setLocationManager(LocationManager locationManager) {
 		this.locationManager = locationManager;
+	}
+
+	public void setSmsSender(SmsSender smsSender) {
+		this.smsSender = smsSender;
 	}
 
 	@JavascriptInterface
@@ -76,6 +81,11 @@ public class JsUtils {
 		} catch(ParseException ex) {
 			datePicker(targetElement);
 		}
+	}
+
+	@JavascriptInterface
+	public void sendSms(final String to, final String message) {
+		smsSender.send(to, message);
 	}
 
 	private void datePicker(String targetElement, Calendar initialDate) {

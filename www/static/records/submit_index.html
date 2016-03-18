@@ -10,5 +10,10 @@
 	</ul>
 	<button ng-click="toggleAll()">Toggle All</button>
 	<button ng-click="refreshAvailable()">Refresh</button>
-	<button ng-click="submitSelected()">Submit Selected</button>
+
+	<button ng-if="!smsEnabled" ng-click="submitSelected()">Submit Selected</button>
+	<span ng-if="smsEnabled">
+		<button ng-click="submitSelected('web')">Submit Selected (web)</button>
+		<button ng-click="submitSelected('sms')">Submit Selected (sms)</button>
+	</span>
 </form>

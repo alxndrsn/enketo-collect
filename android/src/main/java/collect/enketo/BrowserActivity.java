@@ -111,9 +111,10 @@ public class BrowserActivity extends Activity {
 
 		JsUtils j = new JsUtils(this);
 
+		j.setSmsSender(new SmsSender());
 		j.setLocationManager((LocationManager) this.getSystemService(Context.LOCATION_SERVICE));
 
-		container.addJavascriptInterface(j, "enketo_collect_android");
+		container.addJavascriptInterface(j, "enketo_collect_wrapper");
 	}
 
 	private void enableStorage(WebView container) {

@@ -271,6 +271,8 @@ app.controller('ConfigController', [
 		$scope.config = Config;
 		$scope.version = '___VERSION___';
 		$scope.serverUrl = 'http://localhost:8080/';
+
+		$scope.smsSupported = window.enketo_collect_wrapper && enketo_collect_wrapper.sendSms;
 	}
 ]);
 
@@ -378,6 +380,9 @@ app.controller('FormNewController', [
 app.controller('RecordSubmitIndexController', [
 	'$http', '$q', '$scope', 'Config',
 	function($http, $q, $scope, Config) {
+		$scope.smsEnabled = window.enketo_collect_wrapper && enketo_collect_wrapper.sendSms &&
+				Config.serverPhoneNumber;
+
 		$scope.refreshAvailable = function() {
 			$scope.loading = true;
 			delete $scope.finalisedRecords;
@@ -409,8 +414,9 @@ app.controller('RecordSubmitIndexController', [
 			});
 		};
 
-		$scope.submitSelected = function() {
+		$scope.submitSelected = function(protocol) {
 			$scope.submitting = true;
+			if(!protocol) protocol = 'web';
 
 			var submissions = [];
 			_.each($scope.submit, function(requested, i) {
@@ -419,28 +425,43 @@ app.controller('RecordSubmitIndexController', [
 				var record = $scope.finalisedRecords[i];
 
 				submissions.push($q(function(resolve, reject) {
-					// Manually build the form submit ourself, as we need the Content-Type hader
-					// set, and Chrome seems to omit Blob content when submitting mutipart data
-					// with e.g. `FormData`.
-					var BOUNDARY = '-----FormBoundary' + Math.random().toString().substring(2);
-					var data = BOUNDARY + '\r\n' +
-							'Content-Disposition: form-data; name="xml_submission_file"\r\n' +
-							'Content-Type: text/xml\r\n' +
-							'\r\n' +
-							record.data +
-							'\r\n' + BOUNDARY;
-					$.ajax({
-						type: 'POST',
-						url: Config.serverUrl,
-						headers: {
-							'X-OpenRosa-Version': '1.0',
-							'Content-Type': 'multipart/form-data; boundary=' + BOUNDARY,
-						},
-						data: data,
-						processData: false,
-						success: resolve,
-						error: reject,
-					});
+					if(protocol === 'web') {
+						// Manually build the form submit ourself, as we need the Content-Type hader
+						// set, and Chrome seems to omit Blob content when submitting mutipart data
+						// with e.g. `FormData`.
+						var BOUNDARY = '-----FormBoundary' + Math.random().toString().substring(2);
+						var data = BOUNDARY + '\r\n' +
+								'Content-Disposition: form-data; name="xml_submission_file"\r\n' +
+								'Content-Type: text/xml\r\n' +
+								'\r\n' +
+								record.data +
+								'\r\n' + BOUNDARY;
+						$.ajax({
+							type: 'POST',
+							url: Config.serverUrl,
+							headers: {
+								'X-OpenRosa-Version': '1.0',
+								'Content-Type': 'multipart/form-data; boundary=' + BOUNDARY,
+							},
+							data: data,
+							processData: false,
+							success: resolve,
+							error: reject,
+						});
+					} else if(protocol === 'sms') {
+						var $data = $(record.data);
+						var $vals = $data.children(':not(formhub):not(meta):not(instanceid)').eq(0).children();
+						var message = $data.eq(0).attr('id');
+						message += Array.prototype.join.call($vals.map(function(i, e) {
+							return e.tagName + '#' + e.textContent;
+						}), '#');
+						try {
+							enketo_collect_wrapper.sendSms(Config.serverPhoneNumber, message);
+							resolve();
+						} catch(e) {
+							reject(e);
+						}
+					} else throw new Error('submitSelected', 'Unrecognised protocol', protocol);
 				}));
 			});
 
