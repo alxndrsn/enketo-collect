@@ -5,7 +5,7 @@
 </head>
 <body ng-controller="EnketoCollectController">
 	<div class="loader" ng-show="loading"></div>
-	<div ui-view></div>
+	<div ng-show="!loading" ui-view></div>
 
 	<ol>
 		<li ng-repeat="e in errors">

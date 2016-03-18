@@ -1,18 +1,26 @@
 var ENKETO_CONTAINER = '#enketo-form .pages';
 
-require('angular');
 require('lodash');
 var PouchDB = require('pouchdb');
 // set window.jQuery for enketo's sake
 var $ = window.jQuery = require('jquery');
 var Enketo = require('enketo-core');
+
+require('angular');
 require('angular-ui-router');
 
-var db;
+var db = new PouchDB('ncollect');
 
 var app = angular.module('EnketoCollectApp', [
 	'ui.router',
 ]);
+
+function logError(err) {
+	console.log(err);
+	if(window.enketo_collect_wrapper && enketo_collect_wrapper.logError) {
+		enketo_collect_wrapper.logError(err);
+	}
+}
 
 app.config([
 	'$stateProvider', '$urlRouterProvider',
@@ -95,16 +103,47 @@ var ADAPTERS = {
 };
 
 app.service('Config', [
-	function() {
-		var config = {};
+	'$q',
+	function($q) {
+		var config;
+		var init = $q(function(resolve, reject) {
+			function complete(c) {
+				_.defaults(config, c);
+				resolve();
+			}
 
-		// OpenRosa test URL
-		config.serverUrl = '/samples/or/forms.xml';
-		config.protocol = 'openrosa';
+			db.get('config')
+				.then(complete)
+				.catch(function() {
+					// config not loaded from DB, revert to default
+					var defaultConfig = {};
 
-		// ONA test URL
-		config.serverUrl = '/samples/ona/api/v1/forms?owner=mr_alex';
-		config.protocol = 'ona';
+					// OpenRosa test URL
+					defaultConfig.serverUrl = '/samples/or/forms.xml';
+					defaultConfig.protocol = 'openrosa';
+
+					// ONA test URL
+					defaultConfig.serverUrl = '/samples/ona/api/v1/forms?owner=mr_alex';
+					defaultConfig.protocol = 'ona';
+
+					complete(defaultConfig);
+				});
+		});
+
+		function save() {
+			db.put(_.omit(config, ['$init', '$save']))
+				.then(function(res) {
+					if(!res.ok) throw new Error('Error saving config: ' + res);
+					config._rev = res.rev;
+				})
+				.catch(logError);
+		}
+
+		config = {
+			_id: 'config',
+			$init: init,
+			$save: save,
+		};
 
 		return config;
 	}
@@ -212,8 +251,8 @@ app.service('EnketoTransform', [
 ]);
 
 app.controller('EnketoCollectController', [
-	'$scope', '$q',
-	function($scope, $q) {
+	'$scope', '$q', 'Config',
+	function($scope, $q, Config) {
 		$scope.loading = true;
 
 		$scope.errors = [];
@@ -223,9 +262,7 @@ app.controller('EnketoCollectController', [
 			$scope.errors.unshift({ date:new Date(), err:err });
 		};
 
-		db = new PouchDB('ncollect');
-
-		ddocs = _.map({
+		var ddocs = _.map({
 			forms: function(doc) { if(doc.type === 'form') emit(doc.title); },
 			records_finalised: function(doc) {
 				if(doc.type === 'record' && doc.finalised) emit(doc);
@@ -253,6 +290,9 @@ app.controller('EnketoCollectController', [
 		});
 		$q.all(ddocs)
 			.then(function() {
+				return Config.$init;
+			})
+			.then(function() {
 				$scope.loading = false;
 			})
 			.catch($scope.logError);
@@ -273,6 +313,10 @@ app.controller('ConfigController', [
 		$scope.serverUrl = 'http://localhost:8080/';
 
 		$scope.smsSupported = window.enketo_collect_wrapper && enketo_collect_wrapper.sendSms;
+
+		$scope.$on('$destroy', function() {
+			Config.$save();
+		});
 	}
 ]);
 
