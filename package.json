@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "grunt": "0.4.x",
+    "grunt-angular-templates": "^0.5.7",
     "grunt-sass": "1.1.x",
     "load-grunt-tasks": "3.x.x",
     "time-grunt": "1.x.x"

@@ -55,6 +55,9 @@ www-styles: www-enketo-styles
 www-js:
 	echo '[www-js] Concatting JS...'
 	browserify www/js/main.js -o build/www/bundle.js
+	echo '[www-js] Compiling templates...'
+	grunt compile-templates
+	cat build/templates.js >> build/www/bundle.js
 
 www-build: jshint www-clean www-static www-xslt www-styles www-js
 
