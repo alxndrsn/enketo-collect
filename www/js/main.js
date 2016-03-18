@@ -251,8 +251,8 @@ app.service('EnketoTransform', [
 ]);
 
 app.controller('EnketoCollectController', [
-	'$scope', '$q', 'Config',
-	function($scope, $q, Config) {
+	'$scope', '$state', '$q', 'Config',
+	function($scope, $state, $q, Config) {
 		$scope.loading = true;
 
 		$scope.errors = [];
@@ -260,6 +260,13 @@ app.controller('EnketoCollectController', [
 		$scope.logError = function(err) {
 			console.log(err);
 			$scope.errors.unshift({ date:new Date(), err:err });
+		};
+
+		$scope.handleAndroidBack = function() {
+			if($state.current.name !== 'home') {
+				window.history.back();
+				return true;
+			}
 		};
 
 		var ddocs = _.map({
