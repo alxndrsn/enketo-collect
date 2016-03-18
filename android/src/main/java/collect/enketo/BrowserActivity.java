@@ -23,7 +23,7 @@ public class BrowserActivity extends Activity {
 	private final ValueCallback<String> backButtonHandler = new ValueCallback<String>() {
 		public void onReceiveValue(String result) {
 			if(!"true".equals(result)) {
-				BrowserActivity.this.finish();
+				BrowserActivity.this.moveTaskToBack(false);
 			}
 		}
 	};
