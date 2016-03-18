@@ -19,6 +19,7 @@
   "dependencies": {
     "angular": "^1.4.9",
     "angular-ui-router": "^0.2.18",
+    "bootstrap": "^3.3.6",
     "enketo-client-side-transformer": "git://github.com/alxndrsn/enketo-client-side-transformer.git#cb8e9cba8fa9996834be0405ecc96349f0882dd1",
     "enketo-core": "^4.5.2",
     "jquery": "^2.2.0",

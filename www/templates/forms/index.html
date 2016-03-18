@@ -1,6 +1,8 @@
+<h1>Fill Blank Form</h1>
 <div class="loader" ng-show="loading"></div>
-<ul ng-show="!loading">
-	<li ng-repeat="f in forms">
-		<a ui-sref="forms-new({ id:f._id })">{{f.title}}</a>
-	</li>
-</ul>
+<div ng-show="!loading" class="list-group">
+	<a ng-repeat="f in forms" ui-sref="forms-new({ id:f._id })" class="list-group-item">
+		{{f.title}}
+	</a>
+	<p ng-if="!forms.length">There are no forms available.</p>
+</div>

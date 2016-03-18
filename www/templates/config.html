@@ -1,13 +1,17 @@
 <h1>Enketo Collect v{{version}}</h1>
-<label>
-	Server URL
-	<input type="text" ng-model="config.serverUrl"/>
-	<select ng-model="config.protocol">
-		<option value="ona">ONA</option>
-		<option value="openrosa">OpenRosa</option>
-	</select>
-</label>
-<label ng-if="smsSupported">
-	Server Phone Number
-	<input type="text" ng-model="config.serverPhoneNumber"/>
-</label>
+<form>
+	<div class="form-group">
+		<label>Server URL</label>
+		<div class="input-group">
+			<input type="text" ng-model="config.serverUrl" class="form-control"/>
+			<select ng-model="config.protocol">
+				<option value="ona">ONA</option>
+				<option value="openrosa">OpenRosa</option>
+			</select>
+		</div>
+	</div>
+	<div ng-if="smsSupported" class="form-group">
+		<label>Server Phone Number</label>
+		<input type="text" ng-model="config.serverPhoneNumber" class="form-control"/>
+	</div>
+</form>

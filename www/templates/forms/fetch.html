@@ -1,13 +1,14 @@
 <h1>Form Fetcher</h1>
 <div class="loader" ng-show="loading"></div>
 <form ng-show="!loading">
-	<ul>
-		<li ng-repeat="f in availableForms">
-			<input type="checkbox" ng-model="download[$index]"/>
-			{{f.title}}
-		</li>
-	</ul>
-	<button ng-click="toggleAll()">Toggle All</button>
-	<button ng-click="refreshAvailable()">Refresh</button>
-	<button ng-click="fetchSelected()">Get Selected</button>
+	<div class="form-group" ng-repeat="f in availableForms">
+		<input type="checkbox" ng-model="download[$index]"/>
+		{{f.title}}
+	</div>
+	<div ng-show="!availableForms.length">
+		<p>No forms available from the server.</p>
+	</div>
+	<button class="btn btn-default" ng-click="toggleAll()" ng-class="{ disabled: !availableForms.length }">Toggle All</button>
+	<button class="btn btn-default" ng-click="refreshAvailable()">Refresh</button>
+	<button class="btn btn-primary" ng-click="fetchSelected()" ng-class="{ disabled: !availableForms.length }">Get Selected</button>
 </form>

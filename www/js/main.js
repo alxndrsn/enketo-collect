@@ -6,6 +6,8 @@ var PouchDB = require('pouchdb');
 var $ = window.jQuery = require('jquery');
 var Enketo = require('enketo-core');
 
+require('bootstrap');
+
 require('angular');
 require('angular-ui-router');
 
@@ -323,7 +325,7 @@ app.controller('ConfigController', [
 app.controller('FormManageController', [
 	'$scope',
 	function($scope) {
-		$scope.refresh = function() {
+		function refresh() {
 			$scope.loading = true;
 			delete $scope.forms;
 			db.query('forms', { include_docs:true })
@@ -333,16 +335,16 @@ app.controller('FormManageController', [
 					$scope.$apply();
 				})
 				.catch(logError);
-		};
+		}
 
 		$scope.delete = function(form) {
 			$scope.loading = true;
 			db.remove({ _id:form._id, _rev:form._rev })
-				.then($scope.refresh)
+				.then(refresh)
 				.catch(logError);
 		};
 
-		$scope.refresh();
+		refresh();
 	}
 ]);
 
@@ -368,7 +370,7 @@ app.controller('RecordEditController', [
 app.controller('RecordEditIndexController', [
 	'$scope',
 	function($scope) {
-		$scope.refresh = function() {
+		function refresh() {
 			$scope.loading = true;
 			db.query('records_unfinalised', { include_docs:true })
 				.then(function(res) {
@@ -381,15 +383,15 @@ app.controller('RecordEditIndexController', [
 					logError(err);
 					$scope.$apply();
 				});
-		};
+		}
 
 		$scope.delete = function(record) {
 			db.remove(record)
-				.then($scope.refresh)
+				.then(refresh)
 				.catch(logError);
 		};
 
-		$scope.refresh();
+		refresh();
 	}
 ]);
 
@@ -427,7 +429,7 @@ app.controller('RecordSubmitIndexController', [
 		$scope.smsEnabled = window.enketo_collect_wrapper && enketo_collect_wrapper.sendSms &&
 				Config.serverPhoneNumber;
 
-		$scope.refreshAvailable = function() {
+		function refreshAvailable() {
 			$scope.loading = true;
 			delete $scope.finalisedRecords;
 
@@ -446,7 +448,7 @@ app.controller('RecordSubmitIndexController', [
 					logError(err);
 					$scope.$apply();
 				});
-		};
+		}
 
 		$scope.toggleAll = function() {
 			var select = true;
@@ -512,16 +514,16 @@ app.controller('RecordSubmitIndexController', [
 			$q.all(submissions)
 				.then(function() {
 					$scope.submitting = false;
-					$scope.refreshAvailable();
+					refreshAvailable();
 				})
 				.catch(function(err) {
 					logError(err);
 					$scope.submitting = false;
-					$scope.refreshAvailable();
+					refreshAvailable();
 				});
 		};
 
-		$scope.refreshAvailable();
+		refreshAvailable();
 	}
 ]);
 

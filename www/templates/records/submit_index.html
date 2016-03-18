@@ -1,19 +1,25 @@
+<h1>Send Finalised Form</h1>
 <div class="loader" ng-show="loading || submitting">
 	<p ng-show="submitting">Submitting...</p>
 </div>
-<form ng-show="!loading && !submitting">
-	<ul>
-		<li ng-repeat="r in finalisedRecords">
-			<input type="checkbox" ng-model="submit[$index]"/>
-			{{r.lastEditDate}} | {{r.formTitle}}
-		</li>
-	</ul>
-	<button ng-click="toggleAll()">Toggle All</button>
-	<button ng-click="refreshAvailable()">Refresh</button>
+<div ng-show="!loading && !submitting">
+	<form ng-if="finalisedRecords.length">
+		<table class="table table-striped">
+			<tr ng-repeat="r in finalisedRecords">
+				<td><input type="checkbox" ng-model="submit[$index]"/></td>
+				<td>{{r.lastEditDate}}</td>
+				<td>{{r.formTitle}}</td>
+			</tr>
+		</table>
+		<button class="btn btn-default" ng-click="toggleAll()">Toggle All</button>
 
-	<button ng-if="!smsEnabled" ng-click="submitSelected()">Submit Selected</button>
-	<span ng-if="smsEnabled">
-		<button ng-click="submitSelected('web')">Submit Selected (web)</button>
-		<button ng-click="submitSelected('sms')">Submit Selected (sms)</button>
-	</span>
-</form>
+		<button class="btn btn-primary" ng-if="!smsEnabled" ng-click="submitSelected()">Submit Selected</button>
+		<span ng-if="smsEnabled">
+			<button class="btn btn-primary" ng-click="submitSelected('web')">Submit Selected (web)</button>
+			<button class="btn btn-primary" ng-click="submitSelected('sms')">Submit Selected (sms)</button>
+		</span>
+	</form>
+	<p ng-if="!finalisedRecords.length">
+		There are no finallised forms.  Fill in a blank form, or finalise a filled one.
+	</p>
+</div>

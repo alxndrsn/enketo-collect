@@ -1,9 +1,11 @@
 <h1>Form Manager</h1>
 <div class="loader" ng-show="loading"></div>
 <form ng-show="!loading">
-	<ul>
-		<li ng-repeat="f in forms">
-			{{f.title}} <button ng-click="delete(f)">delete</button>
-		</li>
-	</ul>
+	<table class="table table-striped" ng-if="forms.length">
+		<tr ng-repeat="f in forms">
+			<td>{{f.title}}</td>
+			<td><button class="btn btn-danger" ng-click="delete(f)">delete</button></td>
+		</tr>
+	</table>
+	<p ng-if="!forms.length">There are no forms available.</p>
 </form>
