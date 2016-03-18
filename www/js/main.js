@@ -309,7 +309,7 @@ app.controller('ConfigController', [
 	'$scope', 'Config',
 	function($scope, Config) {
 		$scope.config = Config;
-		$scope.version = '___VERSION___';
+		$scope.version = (window.enketo_collect_wrapper && enketo_collect_wrapper.getAppVersion()) || '?';
 		$scope.serverUrl = 'http://localhost:8080/';
 
 		$scope.smsSupported = window.enketo_collect_wrapper && enketo_collect_wrapper.sendSms;
