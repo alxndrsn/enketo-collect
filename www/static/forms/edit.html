@@ -1,0 +1,14 @@
+<div class="loader" ng-show="loading"></div>
+<div id="enketo-form" ng-show="!loading">
+	<div class="pages"></div>
+	<div class="form-footer">
+		<label>
+			Mark form as finalised
+			<input type="checkbox" ng-model="form.finalised"/>
+		</label>
+		<button class="btn btn-default previous-page">&lt; Previous</button>
+		<button class="btn btn-primary next-page">Next &gt;</button>
+		<button class="btn btn-primary submit" ng-click="save()" ng-disabled="saving">Save</button>
+		<div class="loader inline small" ng-show="saving"></div>
+	</div>
+</div>

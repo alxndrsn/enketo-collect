@@ -1,0 +1,13 @@
+<h1>Form Fetcher</h1>
+<div class="loader" ng-show="loading"></div>
+<form ng-show="!loading">
+	<ul>
+		<li ng-repeat="f in availableForms">
+			<input type="checkbox" ng-model="download[$index]"/>
+			{{f.title}}
+		</li>
+	</ul>
+	<button ng-click="toggleAll()">Toggle All</button>
+	<button ng-click="refreshAvailable()">Refresh</button>
+	<button ng-click="fetchSelected()">Get Selected</button>
+</form>

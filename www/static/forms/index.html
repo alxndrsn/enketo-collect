@@ -1,0 +1,6 @@
+<div class="loader" ng-show="loading"></div>
+<ul ng-show="!loading">
+	<li ng-repeat="f in forms">
+		<a ui-sref="forms-new({ id:f._id })">{{f.title}}</a>
+	</li>
+</ul>

@@ -6,10 +6,66 @@ var PouchDB = require('pouchdb');
 // set window.jQuery for enketo's sake
 var $ = window.jQuery = require('jquery');
 var Enketo = require('enketo-core');
+require('angular-ui-router');
 
 var db;
 
-var ncollectApp = angular.module('ncollectApp', [
+var app = angular.module('EnketoCollectApp', [
+	'ui.router',
+]);
+
+app.config([
+	'$stateProvider', '$urlRouterProvider',
+	function($stateProvider, $urlRouterProvider) {
+		$urlRouterProvider.otherwise('/');
+		$stateProvider
+			.state('home', {
+				url: '/',
+				templateUrl: 'main_menu.html',
+				controller: 'MainMenuController',
+			})
+			.state('config', {
+				url: '/config',
+				templateUrl: 'config.html',
+				controller: 'ConfigController',
+			})
+			.state('forms', {
+				url: '/forms',
+				templateUrl: 'forms/index.html',
+				controller: 'FormListController',
+			})
+			.state('forms-new', {
+				url: '/forms/new/:id',
+				templateUrl: 'forms/edit.html',
+				controller: 'FormNewController',
+			})
+			.state('forms-fetch', {
+				url: '/forms/fetch',
+				templateUrl: 'forms/fetch.html',
+				controller: 'FormFetchController',
+			})
+			.state('forms-manage', {
+				url: '/forms/manage',
+				templateUrl: 'forms/manage.html',
+				controller: 'FormManageController',
+			})
+			.state('records-edit-index', {
+				url: '/records/edit',
+				templateUrl: 'records/edit_index.html',
+				controller: 'RecordEditIndexController',
+			})
+			.state('records-edit', {
+				url: '/records/edit/:id',
+				templateUrl: 'forms/edit.html',
+				controller: 'RecordEditController',
+			})
+			.state('records-submit-index', {
+				url: '/records/submit',
+				templateUrl: 'records/submit_index.html',
+				controller: 'RecordSubmitIndexController',
+			})
+			;
+	}
 ]);
 
 var ADAPTERS = {
@@ -38,11 +94,7 @@ var ADAPTERS = {
 	},
 };
 
-ncollectApp.service('AppState', [
-	function() { return {}; }
-]);
-
-ncollectApp.service('Config', [
+app.service('Config', [
 	function() {
 		var config = {};
 
@@ -58,15 +110,47 @@ ncollectApp.service('Config', [
 	}
 ]);
 
-ncollectApp.service('EnketoDisplay', [
-	'EnketoTransform', 'AppState',
-	function(EnketoTransform, AppState) {
-		return function(formDoc, record) {
-			AppState.enketoLoading = true;
+app.service('EnketoDisplay', [
+	'$state', 'EnketoTransform',
+	function($state, EnketoTransform) {
+		return function($scope, formDoc, record) {
+			$scope.loading = true;
+
+			$scope.save = function() {
+				$scope.saving = true;
+				$scope.form.enketo.validate()
+					.then(function(valid) {
+						if(!valid) {
+							$scope.saving = false;
+							$scope.$apply();
+							return;
+						}
+						var data = $scope.form.enketo.getDataStr();
+						var doc = $scope.form.record || {
+							type: 'record',
+							formId: $scope.form.doc._id,
+							formTitle: $scope.form.doc.title,
+						};
+						doc.data = data;
+						doc.finalised = $scope.form.finalised;
+						doc.lastEditDate = new Date();
+
+						return db.post(doc);
+					})
+					.then(function() {
+						$state.go('home');
+					})
+					.catch(function(err) {
+						$scope.saving = false;
+						$scope.$apply();
+						$scope.logError(err);
+					});
+			};
+
 			return EnketoTransform(jQuery.parseXML(formDoc.xml))
 				.then(function(form) {
 					$(ENKETO_CONTAINER).html(form.html);
-					AppState.form = {
+					$scope.form = {
 						doc: formDoc,
 						enketo: new Enketo(ENKETO_CONTAINER, {
 							modelStr: form.model,
@@ -75,18 +159,18 @@ ncollectApp.service('EnketoDisplay', [
 						finalised: true,
 						record: record,
 					};
-					var loadErrors = AppState.form.enketo.init();
+					var loadErrors = $scope.form.enketo.init();
 					if(loadErrors && loadErrors.length) {
 						throw new Error('Error loading form.  ' +
 								JSON.stringify(loadErrors));
 					}
-					AppState.enketoLoading = false;
+					$scope.loading = false;
 				});
 		};
 	}
 ]);
 
-ncollectApp.service('EnketoTransform', [
+app.service('EnketoTransform', [
 	'$http', '$q',
 	function($http, $q) {
 		function getStylesheet(url) {
@@ -127,15 +211,12 @@ ncollectApp.service('EnketoTransform', [
 	}
 ]);
 
-ncollectApp.controller('ncollectCtrl',
-	['$scope', '$q', 'AppState',
-	function($scope, $q, AppState) {
+app.controller('EnketoCollectController', [
+	'$scope', '$q',
+	function($scope, $q) {
 		$scope.loading = true;
-		$scope.state = AppState;
 
 		$scope.errors = [];
-
-		$scope.setPane = function(pane) { $scope.state.pane = pane; };
 
 		$scope.logError = function(err) {
 			console.log(err);
@@ -173,20 +254,19 @@ ncollectApp.controller('ncollectCtrl',
 		$q.all(ddocs)
 			.then(function() {
 				$scope.loading = false;
-				$scope.state.pane = 'main-menu';
 			})
 			.catch($scope.logError);
 	}
 ]);
 
-ncollectApp.controller('mainMenuCtrl',
-	['$scope',
+app.controller('MainMenuController', [
+	'$scope',
 	function($scope) {
 	}
 ]);
 
-ncollectApp.controller('configCtrl',
-	['$scope', 'Config',
+app.controller('ConfigController', [
+	'$scope', 'Config',
 	function($scope, Config) {
 		$scope.config = Config;
 		$scope.version = '___VERSION___';
@@ -194,8 +274,8 @@ ncollectApp.controller('configCtrl',
 	}
 ]);
 
-ncollectApp.controller('formManagerCtrl',
-	['$scope',
+app.controller('FormManageController', [
+	'$scope',
 	function($scope) {
 		$scope.refresh = function() {
 			$scope.loading = true;
@@ -220,9 +300,28 @@ ncollectApp.controller('formManagerCtrl',
 	}
 ]);
 
-ncollectApp.controller('recordListCtrl',
-	['$scope', 'EnketoDisplay',
-	function($scope, EnketoDisplay) {
+app.controller('RecordEditController', [
+	'$scope', '$stateParams', 'EnketoDisplay',
+	function($scope, $stateParams, EnketoDisplay) {
+		var record;
+		db.get($stateParams.id)
+			.then(function(r) {
+				record = r;
+				return db.get(record.formId);
+			})
+			.then(function(formDoc) {
+				return EnketoDisplay($scope, formDoc, record);
+			})
+			.catch(function(err) {
+				$scope.loading = false;
+				$scope.logError(err);
+			});
+	}
+]);
+
+app.controller('RecordEditIndexController', [
+	'$scope',
+	function($scope) {
 		$scope.refresh = function() {
 			$scope.loading = true;
 			db.query('records_unfinalised', { include_docs:true })
@@ -244,88 +343,40 @@ ncollectApp.controller('recordListCtrl',
 				.catch($scope.logError);
 		};
 
-		$scope.edit = function(record) {
-			db.get(record.formId)
-				.then(function(formDoc) {
-					$scope.setPane('form-edit');
-					EnketoDisplay(formDoc, record)
-						.catch(function(err) {
-							$scope.state.enketoLoading = false;
-							$scope.logError(err);
-						});
-					$scope.$apply();
-				})
-				.catch($scope.logError);
-		};
-
 		$scope.refresh();
 	}
 ]);
 
-ncollectApp.controller('formEditCtrl',
-	['$scope', 'AppState', 'EnketoDisplay',
-	function($scope, AppState, EnketoDisplay) {
-		$scope.state = AppState;
-
-		$scope.refresh = function() {
-			db.query('forms', { include_docs:true })
-				.then(function(res) {
-					$scope.loading = false;
-					$scope.forms = _.map(res.rows, 'doc');
-					$scope.$apply();
-				})
-				.catch($scope.logError);
-			$scope.loading = true;
-		};
-
-		$scope.edit = function(formDoc, record) {
-			EnketoDisplay(formDoc, record)
-				.catch(function(err) {
-					$scope.state.enketoLoading = false;
-					$scope.logError(err);
-				});
-		};
-
-		$scope.save = function() {
-			$scope.saving = true;
-			$scope.state.form.enketo.validate()
-				.then(function(valid) {
-					if(!valid) {
-						$scope.saving = false;
-						$scope.$apply();
-						return;
-					}
-					var data = $scope.state.form.enketo.getDataStr();
-					var doc = $scope.state.form.record || {
-						type: 'record',
-						formId: $scope.state.form.doc._id,
-						formTitle: $scope.state.form.doc.title,
-					};
-					doc.data = data;
-					doc.finalised = $scope.state.form.finalised;
-					doc.lastEditDate = new Date();
-
-					return db.post(doc);
-				})
-				.then(function() {
-					$scope.saving = false;
-					$scope.state.form = null;
-					$(ENKETO_CONTAINER).html('');
-					$scope.$apply();
-				})
-				.catch(function(err) {
-					$scope.saving = false;
-					$scope.$apply();
-					$scope.logError(err);
-				});
-		};
-
-		$scope.refresh();
+app.controller('FormListController', [
+	'$scope',
+	function($scope) {
+		$scope.loading = true;
+		db.query('forms', { include_docs:true })
+			.then(function(res) {
+				$scope.loading = false;
+				$scope.forms = _.map(res.rows, 'doc');
+				$scope.$apply();
+			})
+			.catch($scope.logError);
 	}
 ]);
 
-ncollectApp.controller('recordSubmitCtrl',
-	['$http', '$q', '$scope', 'Config',
+app.controller('FormNewController', [
+	'$scope', '$stateParams', 'EnketoDisplay',
+	function($scope, $stateParams, EnketoDisplay) {
+		db.get($stateParams.id)
+			.then(function(formDoc) {
+				return EnketoDisplay($scope, formDoc);
+			})
+			.catch(function(err) {
+				$scope.loading = false;
+				$scope.logError(err);
+			});
+	}
+]);
+
+app.controller('RecordSubmitIndexController', [
+	'$http', '$q', '$scope', 'Config',
 	function($http, $q, $scope, Config) {
 		$scope.refreshAvailable = function() {
 			$scope.loading = true;
@@ -409,8 +460,8 @@ ncollectApp.controller('recordSubmitCtrl',
 	}
 ]);
 
-ncollectApp.controller('formFetchCtrl',
-	['$http', '$scope', 'Config',
+app.controller('FormFetchController', [
+	'$http', '$scope', 'Config',
 	function($http, $scope, Config) {
 		$scope.refreshAvailable = function() {
 			$scope.loading = true;

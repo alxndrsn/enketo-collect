@@ -1,0 +1,14 @@
+<div class="loader" ng-show="loading || submitting">
+	<p ng-show="submitting">Submitting...</p>
+</div>
+<form ng-show="!loading && !submitting">
+	<ul>
+		<li ng-repeat="r in finalisedRecords">
+			<input type="checkbox" ng-model="submit[$index]"/>
+			{{r.lastEditDate}} | {{r.formTitle}}
+		</li>
+	</ul>
+	<button ng-click="toggleAll()">Toggle All</button>
+	<button ng-click="refreshAvailable()">Refresh</button>
+	<button ng-click="submitSelected()">Submit Selected</button>
+</form>

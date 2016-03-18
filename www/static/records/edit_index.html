@@ -1,0 +1,13 @@
+<h1>Edit Saved Form</h1>
+<div class="loader" ng-show="loading"></div>
+<ul ng-show="!loading && records.length">
+	<li ng-repeat="r in records">
+		{{r.lastEditDate}} | {{r.formTitle}}
+		<a ui-sref="records-edit({ id:r._id })">Edit</a>
+		<a ng-click="delete(r)">Delete</a>
+	</li>
+</ul>
+<div ng-hide="loading || records.length">
+	<p>Nothing available to display.</p>
+	<p>Try getting and filling out a blank form.</p>
+</div>
