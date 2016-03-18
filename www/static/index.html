@@ -1,18 +1,15 @@
 <html ng-app="EnketoCollectApp">
 <head>
-	<script src="bundle.js"></script>
 	<link rel="stylesheet" href="style.css"></link>
 </head>
 <body ng-controller="EnketoCollectController">
-	<div class="loader" ng-show="loading"></div>
+	<h1 id="manual-loader">Loading...</h1>
+	<div class="loader" ng-show="loading" style="display:none" id="main-loader"></div>
 	<div ng-show="!loading" ui-view></div>
-
-	<ol>
-		<li ng-repeat="e in errors">
-			<pre>
-{{e.date}} | {{e.err}}
-			</pre>
-		</li>
-	</ol>
+	<script src="bundle.js"></script>
+	<script>
+		window.jQuery('#manual-loader').remove();
+		window.jQuery('#main-loader').show();
+	</script>
 </body>
 </html>

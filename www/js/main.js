@@ -182,7 +182,7 @@ app.service('EnketoDisplay', [
 					.catch(function(err) {
 						$scope.saving = false;
 						$scope.$apply();
-						$scope.logError(err);
+						logError(err);
 					});
 			};
 
@@ -255,13 +255,6 @@ app.controller('EnketoCollectController', [
 	function($scope, $state, $q, Config) {
 		$scope.loading = true;
 
-		$scope.errors = [];
-
-		$scope.logError = function(err) {
-			console.log(err);
-			$scope.errors.unshift({ date:new Date(), err:err });
-		};
-
 		$scope.handleAndroidBack = function() {
 			if($state.current.name !== 'home') {
 				window.history.back();
@@ -288,11 +281,11 @@ app.controller('EnketoCollectController', [
 				})
 				.catch(function(err) {
 					if(err.status !== 404) {
-						$scope.logError(err);
+						logError(err);
 						return;
 					}
 					db.put(doc)
-						.catch($scope.logError);
+						.catch(logError);
 				});
 		});
 		$q.all(ddocs)
@@ -302,7 +295,7 @@ app.controller('EnketoCollectController', [
 			.then(function() {
 				$scope.loading = false;
 			})
-			.catch($scope.logError);
+			.catch(logError);
 	}
 ]);
 
@@ -339,14 +332,14 @@ app.controller('FormManageController', [
 					$scope.forms = _.map(res.rows, 'doc');
 					$scope.$apply();
 				})
-				.catch($scope.logError);
+				.catch(logError);
 		};
 
 		$scope.delete = function(form) {
 			$scope.loading = true;
 			db.remove({ _id:form._id, _rev:form._rev })
 				.then($scope.refresh)
-				.catch($scope.logError);
+				.catch(logError);
 		};
 
 		$scope.refresh();
@@ -367,7 +360,7 @@ app.controller('RecordEditController', [
 			})
 			.catch(function(err) {
 				$scope.loading = false;
-				$scope.logError(err);
+				logError(err);
 			});
 	}
 ]);
@@ -385,7 +378,7 @@ app.controller('RecordEditIndexController', [
 				})
 				.catch(function(err) {
 					$scope.loading = false;
-					$scope.logError(err);
+					logError(err);
 					$scope.$apply();
 				});
 		};
@@ -393,7 +386,7 @@ app.controller('RecordEditIndexController', [
 		$scope.delete = function(record) {
 			db.remove(record)
 				.then($scope.refresh)
-				.catch($scope.logError);
+				.catch(logError);
 		};
 
 		$scope.refresh();
@@ -410,7 +403,7 @@ app.controller('FormListController', [
 				$scope.forms = _.map(res.rows, 'doc');
 				$scope.$apply();
 			})
-			.catch($scope.logError);
+			.catch(logError);
 	}
 ]);
 
@@ -423,7 +416,7 @@ app.controller('FormNewController', [
 			})
 			.catch(function(err) {
 				$scope.loading = false;
-				$scope.logError(err);
+				logError(err);
 			});
 	}
 ]);
@@ -450,7 +443,7 @@ app.controller('RecordSubmitIndexController', [
 				})
 				.catch(function(err) {
 					$scope.loading = false;
-					$scope.logError(err);
+					logError(err);
 					$scope.$apply();
 				});
 		};
@@ -522,7 +515,7 @@ app.controller('RecordSubmitIndexController', [
 					$scope.refreshAvailable();
 				})
 				.catch(function(err) {
-					$scope.logError(err);
+					logError(err);
 					$scope.submitting = false;
 					$scope.refreshAvailable();
 				});
@@ -550,7 +543,7 @@ app.controller('FormFetchController', [
 				})
 				.catch(function(err) {
 					$scope.loading = false;
-					$scope.logError(err);
+					logError(err);
 				});
 		};
 
@@ -578,7 +571,7 @@ app.controller('FormFetchController', [
 							xml: xml,
 						});
 					})
-					.catch($scope.logError);
+					.catch(logError);
 			});
 		};
 
