@@ -424,8 +424,8 @@ app.controller('FormNewController', [
 ]);
 
 app.controller('RecordSubmitIndexController', [
-	'$http', '$q', '$scope', 'Config',
-	function($http, $q, $scope, Config) {
+	'$q', '$scope', 'Config',
+	function($q, $scope, Config) {
 		$scope.smsEnabled = window.enketo_collect_wrapper && enketo_collect_wrapper.sendSms &&
 				Config.serverPhoneNumber;
 
