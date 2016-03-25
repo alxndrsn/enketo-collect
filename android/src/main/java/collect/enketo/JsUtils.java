@@ -7,6 +7,7 @@ import android.location.*;
 import android.webkit.*;
 import android.widget.*;
 
+import java.net.*;
 import java.text.*;
 import java.util.*;
 
@@ -20,11 +21,21 @@ public class JsUtils {
 
 	private final BrowserActivity parent;
 
+	private AssetService assetService;
+	private HttpService httpService;
 	private LocationManager locationManager;
 	private SmsSender smsSender;
 
 	public JsUtils(BrowserActivity parent) {
 		this.parent = parent;
+	}
+
+	public void setAssetService(AssetService assetService) {
+		this.assetService = assetService;
+	}
+
+	public void setHttpService(HttpService httpService) {
+		this.httpService = httpService;
 	}
 
 	public void setLocationManager(LocationManager locationManager) {
@@ -88,6 +99,20 @@ public class JsUtils {
 		smsSender.send(to, message);
 	}
 
+	@JavascriptInterface
+	public String http(final String options) {
+		// TODO eventually this should be asynchronous
+		try {
+			JSONObject optionsJson = new JSONObject(options);
+			final String url = optionsJson.getString("url");
+			if(isRelative(url)) return assetService.request(optionsJson).toString();
+			else return httpService.request(optionsJson).toString();
+		} catch(Exception ex) {
+			ex.printStackTrace();
+			return jsonError("Problem in http request: ", ex);
+		}
+	}
+
 	private void datePicker(String targetElement, Calendar initialDate) {
 		// Remove single-quotes from the `targetElement` CSS selecter, as
 		// we'll be using these to enclose the entire string in JS.  We
@@ -121,6 +146,15 @@ public class JsUtils {
 
 	private static String jsonEscape(String s) {
 		return s.replaceAll("\"", "'");
+	}
+
+	private boolean isRelative(String url) {
+		try {
+			new URL(url);
+			return false;
+		} catch(MalformedURLException ex) {
+			return true;
+		}
 	}
 
 	private void log(String message, Object...extras) {

@@ -111,6 +111,8 @@ public class BrowserActivity extends Activity {
 
 		JsUtils j = new JsUtils(this);
 
+		j.setAssetService(new AssetService(this, "www/"));
+		j.setHttpService(new HttpService());
 		j.setSmsSender(new SmsSender());
 		j.setLocationManager((LocationManager) this.getSystemService(Context.LOCATION_SERVICE));
 

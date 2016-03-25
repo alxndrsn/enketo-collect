@@ -211,11 +211,152 @@ app.service('EnketoDisplay', [
 	}
 ]);
 
-app.service('EnketoTransform', [
+app.service('Http', [
 	'$http', '$q',
 	function($http, $q) {
+		function mergeHeaders(target) {
+			var i, defaults, request;
+
+			function addFromDefaults(val, key) {
+				if(!target.hasOwnProperty(key)) {
+					target[key] = val;
+				}
+			}
+
+			for(i=1; i<arguments.length; ++i) {
+				defaults = arguments[i];
+				_.forEach(defaults, addFromDefaults);
+			}
+		}
+
+		function headersGetter(headers) {
+			return function(key) {
+				if(!arguments.length) return headers;
+				key = key.toLowerCase();
+				return _.reduce(headers, function(result, val, _key) {
+					if(key === _key.toLowerCase()) return val;
+					return result;
+				});
+			};
+		}
+
+		function multipartOptions(options, files) {
+			options = _.clone(options);
+
+			// Manually build the form submit ourself, as we need the Content-Type hader
+			// set, and Chrome seems to omit Blob content when submitting mutipart data
+			// with e.g. `FormData`.  It's also convenient to re-use this approach on
+			// Android so that we can continue to use `HttpURLConnection`.
+			var BOUNDARY = '-----FormBoundary' + Math.random().toString().substring(2);
+
+			options.method = 'POST';
+			if(!options.headers) options.headers = {};
+			options.headers['Content-Type'] = 'multipart/form-data; boundary=' + BOUNDARY;
+
+			options.data = '';
+			_.forEach(files, function(file) {
+				options.data = BOUNDARY + '\r\n' +
+						'Content-Disposition: form-data; name="' + file.name + '"\r\n' +
+						'Content-Type: ' + file.mime + '\r\n' +
+						'\r\n' +
+						file.data +
+						'\r\n';
+			});
+			options.data += BOUNDARY;
+
+			return options;
+		}
+
+		function convertAuthHeaders(options) {
+			var match = /(http[s]?):\/\/(?:([^:]*):([^@]*)@(.*))/.exec(options.url);
+			if(!match) return;
+
+			options.url = match[1] + '://' + match[4];
+
+			var username = match[2];
+			var password = match[3];
+
+			if(!options.headers) options.headers = {};
+			var encodedCredentials = window.btoa(username + ':' + password);
+			options.headers.Authorization = 'Basic ' + encodedCredentials;
+		}
+
+		if(window.enketo_collect_wrapper && enketo_collect_wrapper.http) {
+			var request = function(options) {
+				if(arguments.length !== 1) {
+					throw new Error('Wrong number of args for HTTP request.');
+				}
+
+				// TODO check if we really need to do this manually
+				convertAuthHeaders(options);
+
+				var method = (options.method || 'GET').toLowerCase();
+				if(!options.headers) options.headers = {};
+				mergeHeaders(options.headers,
+						$http.defaults.headers[method],
+						$http.defaults.headers.common);
+
+				return $q(function(resolve, reject) {
+					try {
+						var res = JSON.parse(enketo_collect_wrapper.http(JSON.stringify(options)));
+						if(res.error) reject(new Error(res.message));
+						else if(res.status >= 400) reject(res);
+						else resolve(res);
+					} catch(e) {
+						reject(e);
+					}
+				}).then(function(res) {
+					if(typeof $http.defaults.transformResponse === 'function') {
+						res.data = $http.defaults.transformResponse(res.data, headersGetter(res.headers), res.status);
+					} else if(angular.isArray($http.defaults.transformResponse)) {
+						_.forEach($http.defaults.transformResponse, function(transformer) {
+							res.data = transformer(res.data, headersGetter(res.headers), res.status);
+						});
+					}
+
+					if(options.responseType === 'document') {
+						res.data = $.parseXML(res.data);
+					}
+
+					return res;
+				});
+			};
+
+			return {
+				get: function(url, options) {
+					if(!options) options = {};
+					options.method = 'GET';
+					options.url = url;
+					return request(options);
+				},
+				multipart: function(options, files) {
+					return request(multipartOptions(options, files));
+				},
+				request: request,
+			};
+		} else {
+			return {
+				get: _.partial($http.get),
+				multipart: function(options, files) {
+					options = multipartOptions(options, files);
+					return $q(function(resolve, reject) {
+						options.processData = false;
+						options.success = resolve;
+						options.error = reject;
+						$.ajax(options);
+					});
+				},
+				request: $http,
+			};
+		}
+	}
+]);
+
+app.service('EnketoTransform', [
+	'$q', 'Http',
+	function($q, Http) {
 		function getStylesheet(url) {
-			return $http.get(url, { responseType:'document' })
+			return Http.get(url, { responseType:'document' })
 				.then(function(res) {
 					var p = new XSLTProcessor();
 					p.importStylesheet(res.data);
@@ -424,8 +565,8 @@ app.controller('FormNewController', [
 ]);
 
 app.controller('RecordSubmitIndexController', [
-	'$q', '$scope', 'Config',
-	function($q, $scope, Config) {
+	'$q', '$scope', 'Config', 'Http',
+	function($q, $scope, Config, Http) {
 		$scope.smsEnabled = window.enketo_collect_wrapper && enketo_collect_wrapper.sendSms &&
 				Config.serverPhoneNumber;
 
@@ -466,35 +607,23 @@ app.controller('RecordSubmitIndexController', [
 
 			var submissions = [];
 			_.each($scope.submit, function(requested, i) {
+				var options, files;
+
 				if(!requested) return;
 
 				var record = $scope.finalisedRecords[i];
 
-				submissions.push($q(function(resolve, reject) {
-					if(protocol === 'web') {
-						// Manually build the form submit ourself, as we need the Content-Type hader
-						// set, and Chrome seems to omit Blob content when submitting mutipart data
-						// with e.g. `FormData`.
-						var BOUNDARY = '-----FormBoundary' + Math.random().toString().substring(2);
-						var data = BOUNDARY + '\r\n' +
-								'Content-Disposition: form-data; name="xml_submission_file"\r\n' +
-								'Content-Type: text/xml\r\n' +
-								'\r\n' +
-								record.data +
-								'\r\n' + BOUNDARY;
-						$.ajax({
-							type: 'POST',
-							url: Config.serverUrl,
-							headers: {
-								'X-OpenRosa-Version': '1.0',
-								'Content-Type': 'multipart/form-data; boundary=' + BOUNDARY,
-							},
-							data: data,
-							processData: false,
-							success: resolve,
-							error: reject,
-						});
-					} else if(protocol === 'sms') {
+				if(protocol === 'web') {
+					options = {
+						url: Config.serverUrl,
+						headers: { 'X-OpenRosa-Version':'1.0' },
+					};
+					files = [
+						{ data:record.data, mime:'text/xml', name:'xml_submission_file' },
+					];
+					submissions.push(Http.multipart(options, files));
+				} else if(protocol === 'sms') {
+					submissions.push($q(function(resolve, reject) {
 						var $data = $(record.data);
 						var $vals = $data.children(':not(formhub):not(meta):not(instanceid)').eq(0).children();
 						var message = $data.eq(0).attr('id');
@@ -507,8 +636,8 @@ app.controller('RecordSubmitIndexController', [
 						} catch(e) {
 							reject(e);
 						}
-					} else throw new Error('submitSelected', 'Unrecognised protocol', protocol);
-				}));
+					}));
+				} else throw new Error('submitSelected', 'Unrecognised protocol', protocol);
 			});
 
 			$q.all(submissions)
@@ -528,13 +657,13 @@ app.controller('RecordSubmitIndexController', [
 ]);
 
 app.controller('FormFetchController', [
-	'$http', '$scope', 'Config',
-	function($http, $scope, Config) {
+	'$scope', 'Config', 'Http',
+	function($scope, Config, Http) {
 		$scope.refreshAvailable = function() {
 			$scope.loading = true;
 			delete $scope.availableForms;
 
-			$http.get(Config.serverUrl)
+			Http.get(Config.serverUrl)
 				.then(function(res) {
 					$scope.loading = false;
 					$scope.availableForms = ADAPTERS[Config.protocol].translateForms2local(res);
@@ -563,7 +692,7 @@ app.controller('FormFetchController', [
 			_.each($scope.download, function(requested, i) {
 				if(!requested) return;
 				var form = $scope.availableForms[i];
-				$http.get(form.url)
+				Http.get(form.url)
 					.then(function(res) {
 						var xml = res.data;
 						return db.post({
