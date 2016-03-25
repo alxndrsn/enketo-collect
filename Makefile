@@ -71,11 +71,16 @@ www-minify:
 	echo '[www-minify] Minifying CSS...'
 	uglify -c -s build/www/style.css -o build/www.min/style.css
 
-.PHONY: android android-assets android-clean android-deploy android-emulator android-kill android-logs
+.PHONY: android android-assets android-clean android-deploy android-emulator android-kill android-logs android-prod
 
-android: android-clean android-assets android-deploy
+android: android-clean android-assets android-deploy android-logs
+android-prod: android-clean android-prod-assets android-deploy
 
-android-assets: www-build www-minify
+android-assets: www-build
+	mkdir -p android/src/main/assets
+	cp -r build/www android/src/main/assets/www
+
+android-prod-assets: www-build www-minify
 	mkdir -p android/src/main/assets
 	cp -r build/www.min android/src/main/assets/www
 
