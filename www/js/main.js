@@ -1,4 +1,4 @@
-var ENKETO_CONTAINER = '#enketo-form .pages';
+var ENKETO_CONTAINER = '#enketo-form .form-body';
 
 require('lodash');
 var PouchDB = require('pouchdb');
