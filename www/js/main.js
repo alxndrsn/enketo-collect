@@ -18,7 +18,7 @@ var app = angular.module('EnketoCollectApp', [
 ]);
 
 function logError(err) {
-	console.log(err);
+	console.log(err, err.message);
 	if(window.enketo_collect_wrapper && enketo_collect_wrapper.logError) {
 		enketo_collect_wrapper.logError(err);
 	}
