@@ -93,7 +93,7 @@ android-emulator:
 	${ADB} wait-for-device
 
 android-logs:
-	${ADB} shell logcat
+	${ADB} shell logcat | tee android.log
 
 android-deploy:
 	cd android && ${GRADLEW} --daemon --parallel installDebug
