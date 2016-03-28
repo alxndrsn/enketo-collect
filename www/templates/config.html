@@ -1,17 +1,37 @@
 <h1>Enketo Collect v{{version}}</h1>
 <form>
 	<div class="form-group">
-		<label>Server URL</label>
-		<div class="input-group">
-			<input type="text" ng-model="config.serverUrl" class="form-control"/>
-			<select ng-model="config.protocol">
-				<option value="ona">ONA</option>
-				<option value="openrosa">OpenRosa</option>
-			</select>
+		<label class="radio-inline">
+			<input type="radio" value="medic" ng-model="config.adapter">
+			MedicMobile
+		</label>
+		<label class="radio-inline">
+			<input type="radio" value="ona" ng-model="config.adapter">
+			ONA
+		</label>
+	</div>
+	<div ng-show="config.adapter == 'medic'">
+		<div class="form-group">
+			<label for="medic_serverUrl">Server URL</label>
+			<input type="text" ng-model="config.medic_serverUrl" name="medic_serverUrl" class="form-control">
+		</div>
+		<div class="form-group">
+			<label for="medic_localPhoneNumber">Server URL</label>
+			<input type="tel" ng-model="config.medic_localPhoneNumber" name="medic_localPhoneNumber" class="form-control">
+		</div>
+		<div ng-if="smsSupported" class="form-group">
+			<label for="medic_serverPhoneNumber">Server Phone Number</label>
+			<input type="tel" ng-model="config.medic_serverPhoneNumber" name="medic_serverPhoneNumber class="form-control">
 		</div>
 	</div>
-	<div ng-if="smsSupported" class="form-group">
-		<label>Server Phone Number</label>
-		<input type="text" ng-model="config.serverPhoneNumber" class="form-control"/>
+	<div ng-show="config.adapter == 'ona'">
+		<div class="form-group">
+			<label for="ona_password">Username</label>
+			<input type="text" ng-model="config.ona_username" name="ona_username" class="form-control">
+		</div>
+		<div class="form-group">
+			<label for="ona_password">Password</label>
+			<input type="password" ng-model="config.ona_password" name="ona_password" class="form-control">
+		</div>
 	</div>
 </form>

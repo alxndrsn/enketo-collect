@@ -12,8 +12,8 @@
 </head>
 <body ng-controller="EnketoCollectController">
 	<h1 id="manual-loader">Loading...</h1>
-	<div class="loader" ng-show="loading" style="display:none" id="main-loader"></div>
-	<div ng-show="!loading" ui-view class="container"></div>
+	<div class="loader" ng-show="starting" style="display:none" id="main-loader"></div>
+	<div ng-show="!starting" ui-view class="container"></div>
 	<script src="bundle.js"></script>
 	<script>
 		window.jQuery('#manual-loader').remove();

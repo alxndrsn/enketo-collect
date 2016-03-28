@@ -4,6 +4,7 @@ import android.app.*;
 import android.content.*;
 import android.content.pm.*;
 import android.location.*;
+import android.telephony.*;
 import android.webkit.*;
 import android.widget.*;
 
@@ -110,6 +111,16 @@ public class JsUtils {
 		} catch(Exception ex) {
 			ex.printStackTrace();
 			return jsonError("Problem in http request: ", ex);
+		}
+	}
+
+	@JavascriptInterface
+	public String getPhoneNumber() {
+		try {
+			TelephonyManager telephonyManager = (TelephonyManager) parent.getSystemService(Context.TELEPHONY_SERVICE);
+			return new JSONObject(telephonyManager.getLine1Number()).toString();
+		} catch(Exception ex) {
+			return jsonError("Problem getting phone number: ", ex);
 		}
 	}
 

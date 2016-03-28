@@ -78,32 +78,6 @@ app.config([
 	}
 ]);
 
-var ADAPTERS = {
-	openrosa: {
-		translateForms2local: function(res) {
-			var xml = $(res.data);
-			return _.map(xml.find('xform'), function(xform) {
-				xform = $(xform);
-				return {
-					title: xform.find('name').text(),
-					url: xform.find('downloadUrl').text(),
-					remote_id: xform.find('formID').text(),
-				};
-			});
-		},
-	},
-	ona: {
-		translateForms2local: function(res) {
-			return _.map(res.data, function(ona) {
-				var local = _.pick(ona, ['title', 'url']);
-				local.url = local.url + '/form.xml';
-				local.remote_id = ona.formid;
-				return local;
-			});
-		},
-	},
-};
-
 app.service('Config', [
 	'$q',
 	function($q) {
@@ -120,13 +94,14 @@ app.service('Config', [
 					// config not loaded from DB, revert to default
 					var defaultConfig = {};
 
-					// OpenRosa test URL
-					defaultConfig.serverUrl = '/samples/or/forms.xml';
-					defaultConfig.protocol = 'openrosa';
+					// Medic defaults
+					defaultConfig.medic_serverUrl = 'https://demo.medicmobile.org';
+					if(window.enketo_collect_wrapper && enketo_collect_wrapper.getPhoneNumber) {
+						defaultConfig.medic_localPhoneNumber = enketo_collect_wrapper.getPhoneNumber();
+					}
 
-					// ONA test URL
-					defaultConfig.serverUrl = '/samples/ona/api/v1/forms?owner=mr_alex';
-					defaultConfig.protocol = 'ona';
+					// ONA defaults
+					defaultConfig.ona_username = 'mr_alex';
 
 					complete(defaultConfig);
 				});
@@ -251,20 +226,25 @@ app.service('Http', [
 
 			options.method = 'POST';
 			if(!options.headers) options.headers = {};
-			options.headers['Content-Type'] = 'multipart/form-data; boundary=' + BOUNDARY;
+			options.headers['Content-Type'] = 'multipart/form-data; charset=utf-8; boundary=' + BOUNDARY;
 
 			options.data = '';
 			_.forEach(files, function(file) {
-				options.data = BOUNDARY + '\r\n' +
-						'Content-Disposition: form-data; name="' + file.name + '"\r\n' +
+				options.data = '--' + BOUNDARY + '\r\n' +
+						'Content-Disposition: form-data; name="' + file.name + '"; filename= " + file.filename + "\r\n' +
 						'Content-Type: ' + file.mime + '\r\n' +
 						'\r\n' +
 						file.data +
 						'\r\n';
 			});
-			options.data += BOUNDARY;
+			options.data += '--' + BOUNDARY + '--' + '\r\n';
+			options.headers['Content-Length'] = options.data.length;
 
 			return options;
+		}
+
+		function authHeader(username, password) {
+			return 'Basic ' + window.btoa(username + ':' + password);
 		}
 
 		function convertAuthHeaders(options) {
@@ -277,10 +257,10 @@ app.service('Http', [
 			var password = match[3];
 
 			if(!options.headers) options.headers = {};
-			var encodedCredentials = window.btoa(username + ':' + password);
-			options.headers.Authorization = 'Basic ' + encodedCredentials;
+			options.headers.Authorization = authHeader(username, password);
 		}
 
+		var api;
 		if(window.enketo_collect_wrapper && enketo_collect_wrapper.http) {
 			var request = function(options) {
 				if(arguments.length !== 1) {
@@ -322,10 +302,16 @@ app.service('Http', [
 				});
 			};
 
-			return {
+			api = {
 				get: function(url, options) {
 					if(!options) options = {};
 					options.method = 'GET';
+					options.url = url;
+					return request(options);
+				},
+				post: function(url, options) {
+					if(!options) options = {};
+					options.method = 'POST';
 					options.url = url;
 					return request(options);
 				},
@@ -335,8 +321,9 @@ app.service('Http', [
 				request: request,
 			};
 		} else {
-			return {
+			api = {
 				get: _.partial($http.get),
+				post: _.partial($http.post),
 				multipart: function(options, files) {
 					options = multipartOptions(options, files);
 					return $q(function(resolve, reject) {
@@ -349,6 +336,8 @@ app.service('Http', [
 				request: $http,
 			};
 		}
+		api.authHeader = authHeader;
+		return api;
 	}
 ]);
 
@@ -396,7 +385,7 @@ app.service('EnketoTransform', [
 app.controller('EnketoCollectController', [
 	'$scope', '$state', '$q', 'Config',
 	function($scope, $state, $q, Config) {
-		$scope.loading = true;
+		$scope.starting = true;
 
 		$scope.handleAndroidBack = function() {
 			if($state.current.name !== 'home') {
@@ -436,7 +425,7 @@ app.controller('EnketoCollectController', [
 				return Config.$init;
 			})
 			.then(function() {
-				$scope.loading = false;
+				$scope.starting = false;
 			})
 			.catch(logError);
 	}
@@ -565,10 +554,9 @@ app.controller('FormNewController', [
 ]);
 
 app.controller('RecordSubmitIndexController', [
-	'$q', '$scope', 'Config', 'Http',
-	function($q, $scope, Config, Http) {
-		$scope.smsEnabled = window.enketo_collect_wrapper && enketo_collect_wrapper.sendSms &&
-				Config.serverPhoneNumber;
+	'$q', '$scope', 'Adapter',
+	function($q, $scope, Adapter) {
+		$scope.smsEnabled = Adapter().smsEnabled();
 
 		function refreshAvailable() {
 			$scope.loading = true;
@@ -613,31 +601,12 @@ app.controller('RecordSubmitIndexController', [
 
 				var record = $scope.finalisedRecords[i];
 
-				if(protocol === 'web') {
-					options = {
-						url: Config.serverUrl,
-						headers: { 'X-OpenRosa-Version':'1.0' },
-					};
-					files = [
-						{ data:record.data, mime:'text/xml', name:'xml_submission_file' },
-					];
-					submissions.push(Http.multipart(options, files));
-				} else if(protocol === 'sms') {
-					submissions.push($q(function(resolve, reject) {
-						var $data = $(record.data);
-						var $vals = $data.children(':not(formhub):not(meta):not(instanceid)').eq(0).children();
-						var message = $data.eq(0).attr('id');
-						message += Array.prototype.join.call($vals.map(function(i, e) {
-							return e.tagName + '#' + e.textContent;
-						}), '#');
-						try {
-							enketo_collect_wrapper.sendSms(Config.serverPhoneNumber, message);
-							resolve();
-						} catch(e) {
-							reject(e);
-						}
-					}));
-				} else throw new Error('submitSelected', 'Unrecognised protocol', protocol);
+				submissions.push(
+					Adapter().submit(protocol, record)
+						.then(function() {
+							db.remove(record);
+						})
+				);
 			});
 
 			$q.all(submissions)
@@ -657,16 +626,16 @@ app.controller('RecordSubmitIndexController', [
 ]);
 
 app.controller('FormFetchController', [
-	'$scope', 'Config', 'Http',
-	function($scope, Config, Http) {
+	'$scope', '$timeout', 'Adapter',
+	function($scope, $timeout, Adapter) {
 		$scope.refreshAvailable = function() {
 			$scope.loading = true;
 			delete $scope.availableForms;
 
-			Http.get(Config.serverUrl)
-				.then(function(res) {
+			Adapter().fetchForms()
+				.then(function(forms) {
 					$scope.loading = false;
-					$scope.availableForms = ADAPTERS[Config.protocol].translateForms2local(res);
+					$scope.availableForms = forms;
 					$scope.download = [];
 					_.each($scope.availableForms, function(f, i) {
 						$scope.download[i] = false;
@@ -692,16 +661,8 @@ app.controller('FormFetchController', [
 			_.each($scope.download, function(requested, i) {
 				if(!requested) return;
 				var form = $scope.availableForms[i];
-				Http.get(form.url)
-					.then(function(res) {
-						var xml = res.data;
-						return db.post({
-							type: 'form',
-							title: form.title,
-							remote_id: form.remote_id,
-							xml: xml,
-						});
-					})
+				Adapter().fetchForm(form)
+					.then(db.post.bind(db))
 					.catch(logError);
 			});
 		};
@@ -709,3 +670,5 @@ app.controller('FormFetchController', [
 		$scope.refreshAvailable();
 	}
 ]);
+
+require('./adapters');
