@@ -95,7 +95,7 @@ app.service('Config', [
 					var defaultConfig = {};
 
 					// Medic defaults
-					defaultConfig.medic_serverUrl = 'https://demo.medicmobile.org';
+					defaultConfig.medic_serverUrl = 'https://demo.app.medicmobile.org';
 					if(window.enketo_collect_wrapper && enketo_collect_wrapper.getPhoneNumber) {
 						defaultConfig.medic_localPhoneNumber = enketo_collect_wrapper.getPhoneNumber();
 					}
