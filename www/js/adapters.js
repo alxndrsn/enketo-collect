@@ -50,9 +50,9 @@ app.service('MedicAdapter', [
 		api.submit = function(protocol, record) {
 			var $data = jQuery(record.data);
 			var $vals = $data.children(':not(formhub):not(meta):not(instanceid)').eq(0).children();
-			var message = $data.eq(0).attr('id');
+			var message = 'J1!' + $data.eq(0).attr('id') + '!';
 			message += Array.prototype.join.call($vals.map(function(i, e) {
-				return e.tagName + '#' + e.textContent;
+				return e.tagName + ' ' + e.textContent;
 			}), '#');
 
 			if(protocol === 'web') {
