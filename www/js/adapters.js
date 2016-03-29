@@ -124,7 +124,6 @@ app.service('OnaAdapter', [
 		api.submit = function(protocol, record) {
 			var options = standardOptions();
 			options.url = ROOT_URL + '/submissions';
-			options.headers['X-OpenRosa-Version'] = '1.0';
 			options.headers.Accept = '*/*';
 			var files = [
 				{ data:record.data, mime:'text/xml', name:'xml_submission_file', filename:record._id },
