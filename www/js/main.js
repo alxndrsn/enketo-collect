@@ -312,10 +312,11 @@ app.service('Http', [
 					options.url = url;
 					return request(options);
 				},
-				post: function(url, options) {
+				post: function(url, data, options) {
 					if(!options) options = {};
 					options.method = 'POST';
 					options.url = url;
+					options.data = data;
 					return request(options);
 				},
 				multipart: function(options, files) {
