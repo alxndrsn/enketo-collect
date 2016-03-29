@@ -97,7 +97,10 @@ app.service('Config', [
 					// Medic defaults
 					defaultConfig.medic_serverUrl = 'https://demo.app.medicmobile.org';
 					if(window.enketo_collect_wrapper && enketo_collect_wrapper.getPhoneNumber) {
-						defaultConfig.medic_localPhoneNumber = enketo_collect_wrapper.getPhoneNumber();
+						try {
+							var suppliedPhoneNumber = JSON.parse(enketo_collect_wrapper.getPhoneNumber());
+							if(!suppliedPhoneNumber.error) defaultConfig.medic_localPhoneNumber = suppliedPhoneNumber;
+						} catch(_) {}
 					}
 
 					// ONA defaults
