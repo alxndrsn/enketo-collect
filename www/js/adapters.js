@@ -118,7 +118,14 @@ app.service('OnaAdapter', [
 
 		api.fetchForms = function() {
 			return Http.get(ROOT_URL + '/forms', standardOptions())
-				.then(convertOpenRosaFormsToLocal);
+				.then(function(res) {
+					return _.map(res.data, function(ona) {
+						var local = _.pick(ona, ['title', 'url']);
+						local.url = local.url + '/form.xml';
+						local.remote_id = ona.formid;
+						return local;
+					});
+				});
 		};
 
 		api.submit = function(protocol, record) {
