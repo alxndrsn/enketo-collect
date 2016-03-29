@@ -1,7 +1,7 @@
 var app = angular.module('EnketoCollectApp');
 
 function urlEncode(params) {
-	_.map(params, function(value, key) {
+	return _.map(params, function(value, key) {
 		return key + '=' + encodeURIComponent(value);
 	}).join('&');
 }
