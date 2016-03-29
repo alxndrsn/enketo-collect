@@ -15,13 +15,12 @@ function convertOpenRosaFormToLocal(form, res) {
 	};
 }
 
-function convertOpenRosaFormsToLocal(res) {
-	return _.map(res.data, function(ona) {
-		var local = _.pick(ona, ['title', 'url']);
-		local.url = local.url + '/form.xml';
-		local.remote_id = ona.formid;
-		return local;
-	});
+function basicOpenRosaOptions() {
+	return {
+		headers: {
+			'X-OpenRosa-Version': '1.0',
+		},
+	};
 }
 
 app.service('Adapter', [
@@ -84,8 +83,17 @@ app.service('MedicAdapter', [
 		};
 
 		api.fetchForms = function() {
-			return Http.get(Config.medic_serverUrl + '/api/v1/forms')
-				.then(convertOpenRosaFormsToLocal);
+			return Http.get(Config.medic_serverUrl + '/api/v1/forms', basicOpenRosaOptions())
+				.then(function(res) {
+					return jQuery(res.data).find('xform').map(function() {
+						var e = jQuery(this);
+						return {
+							title: e.find('name').text(),
+							url: e.find('downloadUrl').text(),
+							remote_id: e.find('formID').text(),
+						};
+					});
+				});
 		};
 
 		return api;
