@@ -49,7 +49,7 @@ app.service('MedicAdapter', [
 		};
 
 		api.submit = function(protocol, record) {
-			var $data = $(record.data);
+			var $data = jQuery(record.data);
 			var $vals = $data.children(':not(formhub):not(meta):not(instanceid)').eq(0).children();
 			var message = $data.eq(0).attr('id');
 			message += Array.prototype.join.call($vals.map(function(i, e) {
