@@ -3,7 +3,7 @@
 	<p ng-show="submitting">Submitting...</p>
 </div>
 <div ng-show="!loading && !submitting">
-	<form ng-if="finalisedRecords.length">
+	<form ng-show="finalisedRecords.length">
 		<table class="table table-striped">
 			<tr ng-repeat="r in finalisedRecords">
 				<td><input type="checkbox" ng-model="submit[$index]"/></td>
@@ -19,7 +19,7 @@
 			<button class="btn btn-primary" ng-click="submitSelected('sms')">Submit Selected (sms)</button>
 		</span>
 	</form>
-	<p ng-if="!finalisedRecords.length">
+	<p ng-show="!finalisedRecords.length">
 		There are no finallised forms.  Fill in a blank form, or finalise a filled one.
 	</p>
 </div>
