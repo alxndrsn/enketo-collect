@@ -110,11 +110,13 @@ app.service('OnaAdapter', [
 		};
 
 		function standardOptions() {
-			return {
-				headers: {
-					Authorization: Http.authHeader(Config.ona_username, Config.ona_password),
-				},
-			};
+			return withAuthHeader(basicOpenRosaOptions());
+		}
+
+		function withAuthHeader(options) {
+			if(!options.headers) options.headers = {};
+			options.headers.Authorization = Http.authHeader(Config.ona_username, Config.ona_password);
+			return options;
 		}
 
 		api.fetchForm = function(form) {
@@ -125,7 +127,7 @@ app.service('OnaAdapter', [
 		};
 
 		api.fetchForms = function() {
-			return Http.get(ROOT_URL + '/forms', standardOptions())
+			return Http.get(ROOT_URL + '/forms', withAuthHeader({}))
 				.then(function(res) {
 					return _.map(res.data, function(ona) {
 						var local = _.pick(ona, ['title', 'url']);
