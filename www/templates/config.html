@@ -6,6 +6,10 @@
 			MedicMobile
 		</label>
 		<label class="radio-inline">
+			<input type="radio" value="open_rosa" ng-model="config.adapter">
+			OpenRosa
+		</label>
+		<label class="radio-inline">
 			<input type="radio" value="ona" ng-model="config.adapter">
 			ONA
 		</label>
@@ -22,6 +26,20 @@
 		<div ng-if="smsSupported" class="form-group">
 			<label for="medic_serverPhoneNumber">Server Phone Number</label>
 			<input type="tel" ng-model="config.medic_serverPhoneNumber" name="medic_serverPhoneNumber class="form-control">
+		</div>
+	</div>
+	<div ng-show="config.adapter == 'open_rosa'">
+		<div class="form-group">
+			<label for="or_serverUrl">Server URL</label>
+			<input type="text" ng-model="config.or_serverUrl" name="or_serverUrl" class="form-control">
+		</div>
+		<div class="form-group">
+			<label for="or_password">Username</label>
+			<input type="text" ng-model="config.or_username" name="or_username" class="form-control">
+		</div>
+		<div class="form-group">
+			<label for="or_password">Password</label>
+			<input type="password" ng-model="config.or_password" name="or_password" class="form-control">
 		</div>
 	</div>
 	<div ng-show="config.adapter == 'ona'">

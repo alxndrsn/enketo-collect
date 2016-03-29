@@ -103,6 +103,9 @@ app.service('Config', [
 						} catch(_) {}
 					}
 
+					// OpenRosa defaults
+					defaultConfig.or_serverUrl = 'https://kc.kobotoolbox.org/<username>';
+
 					// ONA defaults
 					defaultConfig.ona_username = 'mr_alex';
 
@@ -247,7 +250,7 @@ app.service('Http', [
 		}
 
 		function authHeader(username, password) {
-			return 'Basic ' + window.btoa(username + ':' + password);
+			return 'Basic ' + window.btoa(username + ':' + (password || ''));
 		}
 
 		function convertAuthHeaders(options) {

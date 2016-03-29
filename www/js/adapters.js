@@ -15,6 +15,17 @@ function convertOpenRosaFormToLocal(form, res) {
 	};
 }
 
+function convertOpenRosaFormListToLocal(res) {
+	return jQuery(res.data).find('xform').map(function() {
+		var e = jQuery(this);
+		return {
+			title: e.find('name').text(),
+			url: e.find('downloadUrl').text(),
+			remote_id: e.find('formID').text(),
+		};
+	});
+}
+
 function basicOpenRosaOptions() {
 	return {
 		headers: {
@@ -24,11 +35,12 @@ function basicOpenRosaOptions() {
 }
 
 app.service('Adapter', [
-	'Config', 'MedicAdapter', 'OnaAdapter',
-	function(Config, MedicAdapter, OnaAdapter) {
+	'Config', 'MedicAdapter', 'OpenRosaAdapter', 'OnaAdapter',
+	function(Config, MedicAdapter, OpenRosaAdapter, OnaAdapter) {
 		return function() {
 			switch(Config.adapter) {
 				case 'medic': return MedicAdapter;
+				case 'open_rosa': return OpenRosaAdapter;
 				case 'ona': return OnaAdapter;
 				default: throw new Error('No adapter for adapter: ' + Config.adapter);
 			}
@@ -84,16 +96,53 @@ app.service('MedicAdapter', [
 
 		api.fetchForms = function() {
 			return Http.get(Config.medic_serverUrl + '/api/v1/forms', basicOpenRosaOptions())
+				.then(convertOpenRosaFormListToLocal);
+		};
+
+		return api;
+	}
+]);
+
+app.service('OpenRosaAdapter', [
+	'Config', 'Http',
+	function(Config, Http) {
+		var api = {
+			smsEnabled: function() { return false; },
+		};
+
+		function standardOptions() {
+			return withAuthHeader(basicOpenRosaOptions());
+		}
+
+		function withAuthHeader(options) {
+			if(!options) options = {};
+			if(!options.headers) options.headers = {};
+			if(Config.or_username) {
+				options.headers.Authorization = Http.authHeader(Config.or_username, Config.or_password);
+			}
+			return options;
+		}
+
+		api.fetchForm = function(form) {
+			return Http.get(form.url, standardOptions())
 				.then(function(res) {
-					return jQuery(res.data).find('xform').map(function() {
-						var e = jQuery(this);
-						return {
-							title: e.find('name').text(),
-							url: e.find('downloadUrl').text(),
-							remote_id: e.find('formID').text(),
-						};
-					});
+					return convertOpenRosaFormToLocal(form, res);
 				});
+		};
+
+		api.fetchForms = function() {
+			return Http.get(Config.or_serverUrl + '/formList', withAuthHeader())
+				.then(convertOpenRosaFormListToLocal);
+		};
+
+		api.submit = function(protocol, record) {
+			var options = standardOptions();
+			options.url = Config.or_serverUrl + '/submissions';
+			options.headers.Accept = '*/*';
+			var files = [
+				{ data:record.data, mime:'text/xml', name:'xml_submission_file', filename:record._id },
+			];
+			return Http.multipart(options, files);
 		};
 
 		return api;
@@ -114,8 +163,11 @@ app.service('OnaAdapter', [
 		}
 
 		function withAuthHeader(options) {
+			if(!options) options = {};
 			if(!options.headers) options.headers = {};
-			options.headers.Authorization = Http.authHeader(Config.ona_username, Config.ona_password);
+			if(Config.ona_username) {
+				options.headers.Authorization = Http.authHeader(Config.ona_username, Config.ona_password);
+			}
 			return options;
 		}
 
@@ -127,7 +179,7 @@ app.service('OnaAdapter', [
 		};
 
 		api.fetchForms = function() {
-			return Http.get(ROOT_URL + '/forms', withAuthHeader({}))
+			return Http.get(ROOT_URL + '/forms', withAuthHeader())
 				.then(function(res) {
 					return _.map(res.data, function(ona) {
 						var local = _.pick(ona, ['title', 'url']);
