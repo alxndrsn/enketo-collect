@@ -19,9 +19,11 @@ init:
 browse:
 	open http://localhost:8080 || firefox http://localhost:8080
 
-www: www-build www-serve
+www: www-build
+	foreman start
 
 jshint:
+	jshint ajax-proxy/*.js
 	jshint www/js/*.js
 
 www-clean:
@@ -60,9 +62,6 @@ www-js:
 	cat build/templates.js >> build/www/bundle.js
 
 www-build: jshint www-clean www-static www-xslt www-styles www-js
-
-www-serve:
-	http-server build/www
 
 www-minify:
 	cp -r build/www/ build/www.min

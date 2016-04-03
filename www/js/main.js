@@ -1,4 +1,5 @@
 var ENKETO_CONTAINER = '#enketo-form .form-body';
+var AJAX_PROXY_URL = 'http://localhost:8081';
 
 require('lodash');
 var PouchDB = require('pouchdb');
@@ -82,7 +83,7 @@ app.service('Config', [
 	'$q',
 	function($q) {
 		var config;
-		var init = $q(function(resolve, reject) {
+		var init = $q(function(resolve) {
 			function complete(c) {
 				_.defaults(config, c);
 				resolve();
@@ -196,7 +197,7 @@ app.service('Http', [
 	'$http', '$q',
 	function($http, $q) {
 		function mergeHeaders(target) {
-			var i, defaults, request;
+			var i, defaults;
 
 			function addFromDefaults(val, key) {
 				if(!target.hasOwnProperty(key)) {
@@ -222,8 +223,6 @@ app.service('Http', [
 		}
 
 		function multipartOptions(options, files) {
-			options = _.clone(options);
-
 			// Manually build the form submit ourself, as we need the Content-Type hader
 			// set, and Chrome seems to omit Blob content when submitting mutipart data
 			// with e.g. `FormData`.  It's also convenient to re-use this approach on
@@ -245,8 +244,6 @@ app.service('Http', [
 			});
 			options.data += '--' + BOUNDARY + '--' + '\r\n';
 			options.headers['Content-Length'] = options.data.length;
-
-			return options;
 		}
 
 		function authHeader(username, password) {
@@ -266,9 +263,31 @@ app.service('Http', [
 			options.headers.Authorization = authHeader(username, password);
 		}
 
-		var api;
+		function modifyOptionsForAjaxProxy(options) {
+			if(!options.headers) options.headers = {};
+
+			options.headers.__ajax_proxy_url = options.url;
+			options.url = AJAX_PROXY_URL + '/?q=' + encodeURI(options.url);
+		}
+
+		var api = {
+			authHeader: authHeader,
+			get: function(url, options) {
+				if(!options) options = {};
+				options.method = 'GET';
+				options.url = url;
+				return api.request(options);
+			},
+			post: function(url, data, options) {
+				if(!options) options = {};
+				options.method = 'POST';
+				options.url = url;
+				options.data = data;
+				return api.request(options);
+			},
+		};
 		if(window.enketo_collect_wrapper && enketo_collect_wrapper.http) {
-			var request = function(options) {
+			api.request = function(options) {
 				if(arguments.length !== 1) {
 					throw new Error('Wrong number of args for HTTP request.');
 				}
@@ -308,42 +327,32 @@ app.service('Http', [
 				});
 			};
 
-			api = {
-				get: function(url, options) {
-					if(!options) options = {};
-					options.method = 'GET';
-					options.url = url;
-					return request(options);
-				},
-				post: function(url, data, options) {
-					if(!options) options = {};
-					options.method = 'POST';
-					options.url = url;
-					options.data = data;
-					return request(options);
-				},
-				multipart: function(options, files) {
-					return request(multipartOptions(options, files));
-				},
-				request: request,
+			api.multipart = function(options, files) {
+				return api.request(multipartOptions(options, files));
 			};
 		} else {
-			api = {
-				get: _.partial($http.get),
-				post: _.partial($http.post),
-				multipart: function(options, files) {
-					options = multipartOptions(options, files);
-					return $q(function(resolve, reject) {
-						options.processData = false;
-						options.success = resolve;
-						options.error = reject;
-						$.ajax(options);
-					});
-				},
-				request: $http,
+			api.request = function(options) {
+				try { new URL(options.url); } catch(_) {
+					if(!options.url) throw new Error('No URL provided.');
+					// Handle relative URLs:
+					else if(/^\//.test(options.url)) options.url = window.location.origin + options.url;
+					else options.url = window.location.origin + window.location.pathname +
+							(/\/$/.test(window.location.pathname) ? '' : '/') + options.url;
+				}
+				modifyOptionsForAjaxProxy(options);
+				return $http(options);
+			};
+			api.multipart = function(options, files) {
+				modifyOptionsForAjaxProxy(options);
+				multipartOptions(options, files);
+				return $q(function(resolve, reject) {
+					options.processData = false;
+					options.success = resolve;
+					options.error = reject;
+					$.ajax(options);
+				});
 			};
 		}
-		api.authHeader = authHeader;
 		return api;
 	}
 ]);
@@ -439,8 +448,7 @@ app.controller('EnketoCollectController', [
 ]);
 
 app.controller('MainMenuController', [
-	'$scope',
-	function($scope) {
+	function() {
 	}
 ]);
 
@@ -602,11 +610,11 @@ app.controller('RecordSubmitIndexController', [
 
 			var submissions = [];
 			_.each($scope.submit, function(requested, i) {
-				var options, files;
+				var record;
 
 				if(!requested) return;
 
-				var record = $scope.finalisedRecords[i];
+				record = $scope.finalisedRecords[i];
 
 				submissions.push(
 					Adapter().submit(protocol, record)
