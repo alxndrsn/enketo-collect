@@ -3,6 +3,7 @@
 ADB = ${ANDROID_HOME}/platform-tools/adb
 EMULATOR = ${ANDROID_HOME}/tools/emulator
 GRADLEW = ./gradlew
+JSHINT = ./node_modules/jshint/bin/jshint
 
 ifdef ComSpec	 # Windows
   # Use `/` for all paths, except `.\`
@@ -23,8 +24,8 @@ www: www-build
 	foreman start
 
 jshint:
-	jshint ajax-proxy/*.js
-	jshint www/js/*.js
+	${JSHINT} ajax-proxy/*.js
+	${JSHINT} www/js/*.js
 
 www-clean:
 	rm -rf build/www
@@ -61,7 +62,7 @@ www-js:
 	grunt compile-templates
 	cat build/templates.js >> build/www/bundle.js
 
-www-build: jshint www-clean www-static www-xslt www-styles www-js
+www-build: ${JSHINT} www-clean www-static www-xslt www-styles www-js
 
 www-minify:
 	cp -r build/www/ build/www.min

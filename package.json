@@ -31,6 +31,7 @@
     "grunt-angular-templates": "^0.5.7",
     "grunt-sass": "1.1.x",
     "http-proxy": "^1.13.2",
+    "jshint": "^2.9.1",
     "load-grunt-tasks": "3.x.x",
     "time-grunt": "1.x.x"
   }
