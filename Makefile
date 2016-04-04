@@ -107,4 +107,4 @@ stats:
 .PHONY: travis
 
 travis: jshint
-	cd android && ${GRADLEW} test
+	cd android && ${GRADLEW} test assembleDebug
