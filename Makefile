@@ -2,7 +2,7 @@
 
 ADB = ${ANDROID_HOME}/platform-tools/adb
 EMULATOR = ${ANDROID_HOME}/tools/emulator
-GRADLEW = ./gradlew
+GRADLEW = ./gradlew --daemon --parallel --stacktrace
 JSHINT = ./node_modules/jshint/bin/jshint
 
 ifdef ComSpec	 # Windows
@@ -96,7 +96,7 @@ android-logs:
 	${ADB} shell logcat | tee android.log
 
 android-deploy:
-	cd android && ${GRADLEW} --daemon --parallel installDebug
+	cd android && ${GRADLEW} installDebug
 
 android-kill:
 	pkill -9 emulator64-arm
@@ -107,4 +107,4 @@ stats:
 .PHONY: travis
 
 travis: jshint
-	cd android && ${GRADLEW} --daemon --parallel test
+	cd android && ${GRADLEW} --info test
