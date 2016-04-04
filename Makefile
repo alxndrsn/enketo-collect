@@ -102,3 +102,8 @@ android-kill:
 
 stats:
 	./scripts/project_stats
+
+.PHONY: travis
+
+travis: jshint
+	cd android && ${GRADLEW} --daemon --parallel test
