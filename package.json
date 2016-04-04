@@ -27,6 +27,7 @@
     "pouchdb": "^5.2.0"
   },
   "devDependencies": {
+    "browserify": "^13.0.0",
     "grunt": "0.4.x",
     "grunt-angular-templates": "^0.5.7",
     "grunt-sass": "1.1.x",

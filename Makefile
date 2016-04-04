@@ -15,7 +15,7 @@ endif
 default: android
 	
 init:
-	npm install -g browserify http-server less
+	npm install -g http-server
 
 browse:
 	open http://localhost:8080 || firefox http://localhost:8080
@@ -57,7 +57,7 @@ www-styles: www-enketo-styles
 
 www-js:
 	echo '[www-js] Concatting JS...'
-	browserify www/js/main.js -o build/www/bundle.js
+	./node_modules/browserify/bin/cmd.js www/js/main.js -o build/www/bundle.js
 	echo '[www-js] Compiling templates...'
 	grunt compile-templates
 	cat build/templates.js >> build/www/bundle.js
