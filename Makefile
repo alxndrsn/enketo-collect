@@ -53,7 +53,7 @@ www-enketo-styles:
 
 www-styles: www-enketo-styles
 	echo '[www-styles] Compiling stylesheets...'
-	lessc www/style/main.less build/www/style.css
+	./node_modules/less/bin/lessc www/style/main.less build/www/style.css
 
 www-js:
 	echo '[www-js] Concatting JS...'
