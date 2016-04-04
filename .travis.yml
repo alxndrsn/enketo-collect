@@ -1,7 +1,4 @@
 language: android
-branches:
-  only:
-  - master
 android:
   components:
   - build-tools-22.0.1
@@ -11,3 +8,10 @@ before_script:
   - npm install
 script:
   make travis
+deploy:
+  provider: releases
+  api_key: $GITHUB_OAUTH_TOKEN
+  file: android/build/outputs/apk/enketo-collect-SNAPSHOT-debug.apk
+  skip_cleanup: true
+  on:
+    tags: true
