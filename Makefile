@@ -93,7 +93,7 @@ android-emulator:
 	${ADB} wait-for-device
 
 android-logs:
-	${ADB} shell logcat | tee android.log
+	${ADB} logcat EnketoCollect:V AndroidRuntime:E '*:S' | tee android.log
 
 android-deploy:
 	cd android && ${GRADLEW} installDebug

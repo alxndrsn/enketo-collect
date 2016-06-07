@@ -9,6 +9,7 @@ import java.util.*;
 import org.json.*;
 
 import static collect.enketo.BuildConfig.DEBUG;
+import static collect.enketo.Slogger.trace;
 
 public class HttpService {
 	private static final long HTTP_CACHE_SIZE = 10 * 1024 * 1024; // 10 MB;
@@ -29,7 +30,7 @@ public class HttpService {
 	}
 
 	public JSONObject request(JSONObject options) throws IOException, JSONException {
-		if(DEBUG) log("request", "ENTRY");
+		trace(this, "request :: ENTRY");
 
 		// TODO handle basic auth headers if requested via URL
 
@@ -72,7 +73,7 @@ public class HttpService {
 				bob.append(line + "\n");
 			}
 			String responseString = bob.toString();
-			if(DEBUG) log("request", "Retrieved: " + responseString);
+			trace(this, "request() Retrieved: %s", responseString);
 			return new JSONObject()
 					.put("status", conn.getResponseCode())
 					.put("data", responseString)
@@ -109,11 +110,5 @@ public class HttpService {
 			else headers.put(key, new JSONArray(vals));
 		}
 		return headers;
-	}
-
-	private static void log(String methodName, String message) {
-		if(DEBUG) System.err.println("LOG | HttpService." +
-				methodName + "()" +
-				message);
 	}
 }

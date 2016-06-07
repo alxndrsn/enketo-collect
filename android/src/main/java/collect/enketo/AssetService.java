@@ -7,6 +7,7 @@ import java.io.*;
 import org.json.*;
 
 import static collect.enketo.BuildConfig.DEBUG;
+import static collect.enketo.Slogger.log;
 
 public class AssetService {
 	private final Context ctx;
@@ -31,7 +32,7 @@ public class AssetService {
 			}
 			String responseString = bob.toString();
 
-			if(DEBUG) log("request", "Retrieved: " + responseString);
+			log("request", "Retrieved: %s", responseString);
 			return new JSONObject()
 					.put("status", 200)
 					.put("data", responseString)
@@ -43,11 +44,5 @@ public class AssetService {
 				if(DEBUG) ex.printStackTrace();
 			}
 		}
-	}
-
-	private static void log(String methodName, String message) {
-		if(DEBUG) System.err.println("LOG | AssetService." +
-				methodName + "()" +
-				message);
 	}
 }

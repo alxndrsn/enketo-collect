@@ -167,9 +167,4 @@ public class JsUtils {
 			return true;
 		}
 	}
-
-	private void log(String message, Object...extras) {
-		if(DEBUG) System.err.println("LOG | JsUtil::" +
-				String.format(message, extras));
-	}
 }

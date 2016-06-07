@@ -14,6 +14,7 @@ import android.webkit.*;
 import java.io.File;
 
 import static collect.enketo.BuildConfig.DEBUG;
+import static collect.enketo.Slogger.log;
 
 public class BrowserActivity extends Activity {
 	private static final ValueCallback<String> IGNORE_RESULT = new ValueCallback<String>() {
@@ -76,7 +77,7 @@ public class BrowserActivity extends Activity {
 
 	private void browseToRoot() {
 		String url = "file:///android_asset/www/index.html";
-		if(DEBUG) log("Pointing browser to %s", url);
+		log("BrowserActivity :: Pointing browser to %s", url);
 		container.loadUrl(url);
 	}
 
@@ -97,10 +98,8 @@ public class BrowserActivity extends Activity {
 					String origin,
 					GeolocationPermissions.Callback callback) {
 				// allow all location requests TODO should we really do this?
-				BrowserActivity.this.log(
-						"onGeolocationPermissionsShowPrompt() :: origin=%s, callback=%s",
-						origin,
-						callback);
+				log("BrowserActivity :: onGeolocationPermissionsShowPrompt() :: origin=%s, callback=%s",
+						origin, callback);
 				callback.invoke(origin, true, true);
 			}
 		});
@@ -142,10 +141,5 @@ public class BrowserActivity extends Activity {
 				return false;
 			}
 		});
-	}
-
-	private void log(String message, Object...extras) {
-		if(DEBUG) System.err.println("LOG | BrowserActivity::" +
-				String.format(message, extras));
 	}
 }
