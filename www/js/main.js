@@ -669,6 +669,7 @@ app.controller('FormFetchController', [
 				})
 				.catch(function(err) {
 					$scope.loading = false;
+					$scope.error = err;
 					logError(err);
 				});
 		};
