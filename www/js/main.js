@@ -604,10 +604,8 @@ app.controller('RecordSubmitIndexController', [
 		};
 
 		$scope.toggleAll = function() {
-			var select = true;
-			if(_.every($scope.submit)) {
-				select = false;
-			}
+			var select = !_.every($scope.submit);
+
 			_.each($scope.submit, function(d, i) {
 				$scope.submit[i] = select;
 			});
@@ -672,10 +670,8 @@ app.controller('FormFetchController', [
 		};
 
 		$scope.toggleAll = function() {
-			var select = true;
-			if(_.every($scope.download)) {
-				select = false;
-			}
+			var select = !_.every($scope.download);
+
 			_.each($scope.download, function(d, i) {
 				$scope.download[i] = select;
 			});
