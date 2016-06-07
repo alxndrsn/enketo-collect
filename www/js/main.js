@@ -594,6 +594,15 @@ app.controller('RecordSubmitIndexController', [
 				});
 		}
 
+		$scope.toggle = function(event, i) {
+			if(event.target.nodeName === 'INPUT' &&
+					event.target.getAttribute('type') === 'checkbox') {
+				// let native checkbox handler deal with the click
+			} else {
+				$scope.submit[i] = !$scope.submit[i];
+			}
+		};
+
 		$scope.toggleAll = function() {
 			var select = true;
 			if(_.every($scope.submit)) {

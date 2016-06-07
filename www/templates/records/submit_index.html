@@ -5,7 +5,7 @@
 <div ng-show="!loading && !submitting">
 	<form ng-show="finalisedRecords.length">
 		<table class="table table-striped">
-			<tr ng-repeat="r in finalisedRecords">
+			<tr ng-repeat="r in finalisedRecords" ng-click="toggle($event, $index)">
 				<td><input type="checkbox" ng-model="submit[$index]"/></td>
 				<td>{{r.lastEditDate}}</td>
 				<td>{{r.formTitle}}</td>
