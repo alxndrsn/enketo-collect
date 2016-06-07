@@ -1,5 +1,7 @@
 <h1>Send Finalised Form</h1>
-<div class="loader" ng-show="loading || submitting">
+<div class="loader" ng-show="loading"></div>
+<div ng-show="submitting">
+	<div class="loader"></div>
 	<p ng-show="submitting">Submitting...</p>
 </div>
 <div ng-show="!loading && !submitting">
