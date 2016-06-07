@@ -2,8 +2,10 @@
 <div class="loader" ng-show="loading"></div>
 <form ng-show="!loading">
 	<div class="form-group" ng-repeat="f in availableForms">
-		<input type="checkbox" ng-model="download[$index]"/>
-		{{f.title}}
+		<label>
+			<input type="checkbox" ng-model="download[$index]"/>
+			{{f.title}}
+		</label>
 	</div>
 	<div ng-show="!availableForms.length">
 		<p>No forms available from the server.</p>
