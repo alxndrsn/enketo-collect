@@ -497,6 +497,7 @@ app.controller('RecordEditController', [
 	'$scope', '$stateParams', 'EnketoDisplay',
 	function($scope, $stateParams, EnketoDisplay) {
 		var record;
+		$scope.loading = true;
 		db.get($stateParams.id)
 			.then(function(r) {
 				record = r;
@@ -557,6 +558,7 @@ app.controller('FormListController', [
 app.controller('FormNewController', [
 	'$scope', '$stateParams', 'EnketoDisplay',
 	function($scope, $stateParams, EnketoDisplay) {
+		$scope.loading = true;
 		db.get($stateParams.id)
 			.then(function(formDoc) {
 				return EnketoDisplay($scope, formDoc);
