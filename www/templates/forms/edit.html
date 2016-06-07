@@ -1,5 +1,6 @@
 <div class="loader" ng-show="loading"></div>
-<div id="enketo-form" ng-show="!loading">
+<div class="alert alert-danger" ng-show="error">{{error}}</div>
+<div id="enketo-form" ng-hide="loading || error">
 	<div class="form-body"></div>
 	<div class="form-footer">
 		<label>

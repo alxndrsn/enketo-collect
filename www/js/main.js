@@ -507,8 +507,9 @@ app.controller('RecordEditController', [
 				return EnketoDisplay($scope, formDoc, record);
 			})
 			.catch(function(err) {
-				$scope.loading = false;
 				logError(err);
+				$scope.loading = false;
+				$scope.err = err;
 			});
 	}
 ]);
@@ -564,8 +565,9 @@ app.controller('FormNewController', [
 				return EnketoDisplay($scope, formDoc);
 			})
 			.catch(function(err) {
-				$scope.loading = false;
 				logError(err);
+				$scope.loading = false;
+				$scope.error = err;
 			});
 	}
 ]);
