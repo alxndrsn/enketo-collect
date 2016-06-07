@@ -33,6 +33,10 @@ function processProxiedRequest(request, response) {
 		});
 		response.writeHead(proxy_response.statusCode, proxy_response.headers);
 	});
+	proxy_request.on('error', function(err) {
+		response.writeHead(500, JSON.stringify(err));
+		response.end();
+	});
 	request.on('data', function(chunk) {
 		proxy_request.write(chunk, 'binary');
 	});
