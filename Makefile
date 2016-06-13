@@ -2,7 +2,7 @@
 
 ADB = ${ANDROID_HOME}/platform-tools/adb
 EMULATOR = ${ANDROID_HOME}/tools/emulator
-GRADLEW = ./gradlew --daemon --parallel --stacktrace
+GRADLEW = ./gradlew --daemon --parallel
 JSHINT = ./node_modules/jshint/bin/jshint
 
 ifdef ComSpec	 # Windows
@@ -107,4 +107,4 @@ stats:
 .PHONY: travis
 
 travis: jshint android-assets
-	cd android && ${GRADLEW} test assembleDebug
+	cd android && ${GRADLEW} --stacktrace check test assembleDebug
