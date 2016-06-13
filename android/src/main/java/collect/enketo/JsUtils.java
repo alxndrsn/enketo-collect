@@ -1,6 +1,7 @@
 package collect.enketo;
 
 import android.app.*;
+import android.annotation.SuppressLint;
 import android.content.*;
 import android.content.pm.*;
 import android.location.*;
@@ -15,6 +16,7 @@ import java.util.*;
 
 import org.json.*;
 
+import static collect.enketo.Slogger.logException;
 import static java.util.Calendar.DAY_OF_MONTH;
 import static java.util.Calendar.MONTH;
 import static java.util.Calendar.YEAR;
@@ -59,6 +61,7 @@ public class JsUtils {
 	}
 
 	@JavascriptInterface
+	@SuppressLint("MissingPermission")
 	public String getLocation() {
 		try {
 			if(locationManager == null) return jsonError("LocationManager not set.  Cannot retrieve location.");
@@ -109,7 +112,7 @@ public class JsUtils {
 			if(isRelative(url)) return assetService.request(optionsJson).toString();
 			else return httpService.request(optionsJson).toString();
 		} catch(Exception ex) {
-			ex.printStackTrace();
+			logException(ex, "Problem in http request.");
 			return jsonError("Problem in http request: ", ex);
 		}
 	}
@@ -134,7 +137,7 @@ public class JsUtils {
 		DatePickerDialog.OnDateSetListener listener = new DatePickerDialog.OnDateSetListener() {
 			public void onDateSet(DatePicker view, int year, int month, int day) {
 				++month;
-				String dateString = String.format("%04d-%02d-%02d", year, month, day);
+				String dateString = String.format(Locale.US, "%04d-%02d-%02d", year, month, day);
 				String setJs = String.format("$('%s').val('%s').trigger('change')",
 						safeTargetElement, dateString);
 				parent.evaluateJavascript(setJs);
@@ -146,7 +149,7 @@ public class JsUtils {
 	}
 
 	private SimpleDateFormat dateFormat() {
-		return new SimpleDateFormat("yyyy-MM-dd");
+		return new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
 	}
 

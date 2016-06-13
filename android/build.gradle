@@ -1,13 +1,18 @@
 buildscript {
 	repositories {
 		mavenCentral()
+		maven { url "https://jitpack.io" }
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:1.2.3'
+		classpath 'com.android.tools.build:gradle:2.1.0'
+		classpath 'com.github.alxndrsn:android-check:1f87548c0686d823e5f1490a2053b70bd9f5022e'
+		classpath 'com.trickyandroid:jacoco-everywhere:0.2.1'
 	}
 }
 
 apply plugin: 'android'
+apply plugin: 'com.noveogroup.android.check'
+apply plugin: 'jacoco-everywhere'
 
 // enable verbose lint warnings
 gradle.projectsEvaluated {
@@ -47,8 +52,8 @@ def getVersionName = {
 }
 
 android {
-	compileSdkVersion 22
-	buildToolsVersion '22.0.1'
+	compileSdkVersion 23
+	buildToolsVersion '23.0.3'
 	packagingOptions {
 		exclude 'META-INF/LICENSE'
 		exclude 'META-INF/NOTICE'
@@ -67,9 +72,9 @@ android {
 	signingConfigs {
 		release {
 			storeFile file(System.env.ANDROID_KEYSTORE_PATH ?: signingConfigs.debug.storeFile)
-			storePassword System.env.ANDROID_KEYSTORE_PASSWORD
-			keyAlias System.env.ANDROID_KEY_ALIAS
-			keyPassword System.env.ANDROID_KEY_PASSWORD
+			storePassword System.env.ANDROID_KEYSTORE_PASSWORD ?: signingConfigs.debug.storePassword
+			keyAlias System.env.ANDROID_KEY_ALIAS ?: signingConfigs.debug.keyAlias
+			keyPassword System.env.ANDROID_KEY_PASSWORD ?: signingConfigs.debug.keyPassword
 		}
 	}
 
@@ -78,6 +83,24 @@ android {
 			minifyEnabled true
 			proguardFile getDefaultProguardFile('proguard-android.txt')
 			signingConfig signingConfigs.release
+		}
+	}
+
+	check {
+		abortOnError true
+	}
+
+	lintOptions {
+		warningsAsErrors true
+
+		disable 'IconMissingDensityFolder' // re-enable this if proper icons are added to the project
+
+		if(System.env.TRAVIS == 'true') {
+			abortOnError true
+			htmlReport false
+			xmlReport false
+			textReport true
+			textOutput 'stdout'
 		}
 	}
 }

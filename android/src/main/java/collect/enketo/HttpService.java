@@ -8,7 +8,6 @@ import java.util.*;
 
 import org.json.*;
 
-import static collect.enketo.BuildConfig.DEBUG;
 import static collect.enketo.Slogger.logException;
 import static collect.enketo.Slogger.trace;
 
@@ -74,7 +73,7 @@ public class HttpService {
 
 			String line = null;
 			while((line = reader.readLine()) != null) {
-				bob.append(line + "\n");
+				bob.append(line).append('\n');
 			}
 			String responseString = bob.toString();
 			trace(this, "request() Retrieved: %s", responseString);
@@ -85,26 +84,10 @@ public class HttpService {
 		} catch(IOException | JSONException ex) {
 			throw ex;
 		} finally {
-			if(outputStream != null) try {
-				outputStream.close();
-			} catch(Exception ex) {
-				if(DEBUG) ex.printStackTrace();
-			}
-			if(reader != null) try {
-				reader.close();
-			} catch(Exception ex) {
-				if(DEBUG) ex.printStackTrace();
-			}
-			if(inputStream != null) try {
-				inputStream.close();
-			} catch(Exception ex) {
-				if(DEBUG) ex.printStackTrace();
-			}
-			if(conn != null) try {
-				conn.disconnect();
-			} catch(Exception ex) {
-				if(DEBUG) ex.printStackTrace();
-			}
+			closeSafely(outputStream);
+			closeSafely(reader);
+			closeSafely(inputStream);
+			closeSafely(conn);
 		}
 	}
 
@@ -114,10 +97,26 @@ public class HttpService {
 			String key = e.getKey();
 			if(key == null) continue;
 			List<String> vals = e.getValue();
-			if(vals.size() == 0) headers.put(key, null);
+			if(vals.isEmpty()) headers.put(key, null);
 			else if(vals.size() == 1) headers.put(key, vals.get(0));
 			else headers.put(key, new JSONArray(vals));
 		}
 		return headers;
+	}
+
+	private void closeSafely(Closeable c) {
+		if(c != null) try {
+			c.close();
+		} catch(Exception ex) {
+			logException(ex, "HttpService caught exception while closing %s", c);
+		}
+	}
+
+	private void closeSafely(HttpURLConnection conn) {
+		if(conn != null) try {
+			conn.disconnect();
+		} catch(Exception ex) {
+			logException(ex, "HttpService caught exception while disconnecting %s", conn);
+		}
 	}
 }

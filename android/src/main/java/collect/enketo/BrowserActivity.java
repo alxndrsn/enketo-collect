@@ -1,6 +1,7 @@
 package collect.enketo;
 
 import android.app.*;
+import android.annotation.SuppressLint;
 import android.content.*;
 import android.graphics.*;
 import android.location.*;
@@ -15,10 +16,11 @@ import java.io.File;
 
 import static collect.enketo.BuildConfig.DEBUG;
 import static collect.enketo.Slogger.log;
+import static collect.enketo.Slogger.trace;
 
 public class BrowserActivity extends Activity {
 	private static final ValueCallback<String> IGNORE_RESULT = new ValueCallback<String>() {
-		public void onReceiveValue(String result) {}
+		public void onReceiveValue(String result) { /* do nothing */ }
 	};
 
 	private final ValueCallback<String> backButtonHandler = new ValueCallback<String>() {
@@ -58,6 +60,7 @@ public class BrowserActivity extends Activity {
 		}
 	}
 
+	@SuppressWarnings("PMD.UnconditionalIfStatement")
 	public void evaluateJavascript(final String js) {
 		container.post(new Runnable() {
 			public void run() {
@@ -88,9 +91,8 @@ public class BrowserActivity extends Activity {
 
 		container.setWebChromeClient(new WebChromeClient() {
 			public boolean onConsoleMessage(ConsoleMessage cm) {
-				Log.d("Medic Mobile", cm.message() + " -- From line "
-						+ cm.lineNumber() + " of "
-						+ cm.sourceId());
+				trace(this, "%s -- From line %d of %s",
+						cm.message(), cm.lineNumber(), cm.sourceId());
 				return true;
 			}
 
@@ -105,6 +107,7 @@ public class BrowserActivity extends Activity {
 		});
 	}
 
+	@SuppressLint("SetJavaScriptEnabled")
 	private void enableJavascript(WebView container) {
 		container.getSettings().setJavaScriptEnabled(true);
 
@@ -124,7 +127,8 @@ public class BrowserActivity extends Activity {
 		webSettings.setDomStorageEnabled(true);
 		File dir = getCacheDir();
 		if (!dir.exists()) {
-			dir.mkdirs();
+			boolean created = dir.mkdirs();
+			if(!created) throw new RuntimeException("Failed to create AppCache dir at: " + dir.getAbsolutePath());
 		}
 		webSettings.setAppCachePath(dir.getPath());
 		webSettings.setAppCacheEnabled(true);

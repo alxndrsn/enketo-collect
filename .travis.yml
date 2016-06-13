@@ -1,8 +1,10 @@
 language: android
 android:
   components:
-  - build-tools-22.0.1
-  - android-22
+  # include `tools` because travis requires it: https://github.com/travis-ci/travis-ci/issues/5036
+  - tools
+  - build-tools-23.0.3
+  - android-23
 before_script:
   - export COLLECT_VERSION_NAME="0.1.$TRAVIS_BUILD_NUMBER"
   - nvm install 4.4.5
