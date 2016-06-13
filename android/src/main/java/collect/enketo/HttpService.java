@@ -9,6 +9,7 @@ import java.util.*;
 import org.json.*;
 
 import static collect.enketo.BuildConfig.DEBUG;
+import static collect.enketo.Slogger.logException;
 import static collect.enketo.Slogger.trace;
 
 public class HttpService {
@@ -26,7 +27,9 @@ public class HttpService {
 			Class.forName("android.net.http.HttpResponseCache")
 					.getMethod("install", File.class, long.class)
 					.invoke(null, httpCacheDir, HTTP_CACHE_SIZE);
-		} catch(Exception ignore) { /* not available */ }
+		} catch(ReflectiveOperationException ex) {
+			logException(ex, "Could not enable HttpResponseCache");
+		}
 	}
 
 	public JSONObject request(JSONObject options) throws IOException, JSONException {
