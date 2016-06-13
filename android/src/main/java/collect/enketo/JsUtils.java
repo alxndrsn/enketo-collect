@@ -9,7 +9,8 @@ import android.webkit.*;
 import android.widget.*;
 
 import java.net.*;
-import java.text.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.json.*;
@@ -19,8 +20,6 @@ import static java.util.Calendar.MONTH;
 import static java.util.Calendar.YEAR;
 
 public class JsUtils {
-	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-
 	private final BrowserActivity parent;
 
 	private AssetService assetService;
@@ -89,7 +88,7 @@ public class JsUtils {
 	public void datePicker(final String targetElement, String initialDate) {
 		try {
 			Calendar c = Calendar.getInstance();
-			c.setTime(DATE_FORMAT.parse(initialDate));
+			c.setTime(dateFormat().parse(initialDate));
 			datePicker(targetElement, c);
 		} catch(ParseException ex) {
 			datePicker(targetElement);
@@ -144,6 +143,11 @@ public class JsUtils {
 
 		new DatePickerDialog(parent, listener, initialDate.get(YEAR), initialDate.get(MONTH), initialDate.get(DAY_OF_MONTH))
 				.show();
+	}
+
+	private SimpleDateFormat dateFormat() {
+		return new SimpleDateFormat("yyyy-MM-dd");
+
 	}
 
 	private static String jsonError(String message, Exception ex) {
