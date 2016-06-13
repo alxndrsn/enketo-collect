@@ -14,8 +14,9 @@ import java.util.*;
 
 import org.json.*;
 
-import static java.util.Calendar.*;
-import static collect.enketo.BuildConfig.DEBUG;
+import static java.util.Calendar.DAY_OF_MONTH;
+import static java.util.Calendar.MONTH;
+import static java.util.Calendar.YEAR;
 
 public class JsUtils {
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
