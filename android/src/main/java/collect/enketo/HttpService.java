@@ -26,7 +26,7 @@ public class HttpService {
 			Class.forName("android.net.http.HttpResponseCache")
 					.getMethod("install", File.class, long.class)
 					.invoke(null, httpCacheDir, HTTP_CACHE_SIZE);
-		} catch(Exception _) { /* not available */ }
+		} catch(Exception ignore) { /* not available */ }
 	}
 
 	public JSONObject request(JSONObject options) throws IOException, JSONException {
