@@ -39,6 +39,7 @@ public class HttpService {
 
 		HttpURLConnection conn = null;
 		InputStream inputStream = null;
+		BufferedReader reader = null;
 		OutputStream outputStream = null;
 		try {
 			URL url = new URL(options.getString("url"));
@@ -68,7 +69,7 @@ public class HttpService {
 			} else {
 				inputStream = conn.getErrorStream();
 			}
-			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+			reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
 			StringBuilder bob = new StringBuilder();
 
 			String line = null;
@@ -86,6 +87,11 @@ public class HttpService {
 		} finally {
 			if(outputStream != null) try {
 				outputStream.close();
+			} catch(Exception ex) {
+				if(DEBUG) ex.printStackTrace();
+			}
+			if(reader != null) try {
+				reader.close();
 			} catch(Exception ex) {
 				if(DEBUG) ex.printStackTrace();
 			}
