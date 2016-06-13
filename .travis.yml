@@ -5,6 +5,9 @@ android:
   - android-22
 before_script:
   - export COLLECT_VERSION_NAME="0.1.$TRAVIS_BUILD_NUMBER"
+  - nvm install 4.4.5
+  - nvm use 4.4.5
+  - npm install -g grunt
   - npm install
 script:
   make travis

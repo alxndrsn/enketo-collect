@@ -30,7 +30,7 @@
     "browserify": "^13.0.0",
     "grunt": "0.4.x",
     "grunt-angular-templates": "^0.5.7",
-    "grunt-sass": "1.1.x",
+    "grunt-sass": "https://github.com/liamkeaton/grunt-sass.git#365ab105bb05e850b89da411fc42ad850ecfdcbf",
     "http-proxy": "^1.13.2",
     "jshint": "^2.9.1",
     "less": "^2.6.1",
