@@ -18,19 +18,19 @@
   "homepage": "https://github.com/alxndrsn/enketo-collect#readme",
   "dependencies": {
     "angular": "^1.4.9",
-    "angular-ui-router": "^0.2.18",
+    "angular-ui-router": "^0.3.2",
     "bootstrap": "^3.3.6",
     "enketo-client-side-transformer": "git://github.com/alxndrsn/enketo-client-side-transformer.git#cb8e9cba8fa9996834be0405ecc96349f0882dd1",
     "enketo-core": "^4.5.2",
-    "jquery": "^2.2.2",
+    "jquery": "^3.1.1",
     "lodash": "^4.0.0",
-    "pouchdb": "^5.2.0"
+    "pouchdb": "^6.0.7"
   },
   "devDependencies": {
     "browserify": "^13.0.0",
-    "grunt": "0.4.x",
-    "grunt-angular-templates": "^0.5.7",
-    "grunt-sass": "https://github.com/liamkeaton/grunt-sass.git#365ab105bb05e850b89da411fc42ad850ecfdcbf",
+    "grunt": "1.0.x",
+    "grunt-angular-templates": "^1.1.0",
+    "grunt-sass": "^1.2.1",
     "http-proxy": "^1.13.2",
     "jshint": "^2.9.1",
     "less": "^2.6.1",
