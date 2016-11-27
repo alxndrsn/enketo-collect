@@ -1,4 +1,5 @@
-.PHONY: default init www www-build www-serve www-clean www-static www-xslt www-enketo-styles www-styles www-js www-minify stats
+.PHONY: default www www-build www-serve www-clean www-static www-xslt www-enketo-styles www-styles www-js www-minify stats
+.PHONY: init init-npm init-legacy-node_modules-for-enketo-css-includes
 
 ADB = ${ANDROID_HOME}/platform-tools/adb
 EMULATOR = ${ANDROID_HOME}/tools/emulator
@@ -14,8 +15,19 @@ endif
 
 default: android
 	
-init:
+init: init-npm init-legacy-node_modules-for-enketo-css-includes
+
+init-npm:
 	npm install -g http-server
+	npm install
+
+init-legacy-node_modules-for-enketo-css-includes:
+	! [[ -d node_modules/bootstrap-datepicker ]] || \
+		cp -r node_modules/bootstrap-datepicker node_modules/enketo-core/node_modules/
+	! [[ -d node_modules/bootstrap-slider-basic ]] || \
+		cp -r node_modules/bootstrap-slider-basic node_modules/enketo-core/node_modules/
+	! [[ -d node_modules/bootstrap-timepicker ]] || \
+		cp -r node_modules/bootstrap-timepicker node_modules/enketo-core/node_modules/
 
 browse:
 	open http://localhost:8080 || firefox http://localhost:8080
