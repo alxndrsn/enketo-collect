@@ -1,7 +1,7 @@
 var ENKETO_CONTAINER = '#enketo-form .form-body';
 var AJAX_PROXY_URL = 'http://localhost:8081';
 
-require('lodash');
+var _ = require('lodash');
 var PouchDB = require('pouchdb');
 // set window.jQuery for enketo's sake
 var $ = window.jQuery = require('jquery');
