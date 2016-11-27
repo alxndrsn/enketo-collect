@@ -1,5 +1,5 @@
-.PHONY: default www www-build www-serve www-clean www-static www-xslt www-enketo-styles www-styles www-js www-minify stats
-.PHONY: init init-npm init-legacy-node_modules-for-enketo-css-includes
+.PHONY: default init init-npm stats patch-enketo-legacy-css
+.PHONY: www www-build www-serve www-clean www-static www-xslt www-enketo-styles www-styles www-js www-minify
 
 ADB = ${ANDROID_HOME}/platform-tools/adb
 EMULATOR = ${ANDROID_HOME}/tools/emulator
@@ -15,13 +15,15 @@ endif
 
 default: android
 	
-init: init-npm init-legacy-node_modules-for-enketo-css-includes
+init: init-npm
 
 init-npm:
 	npm install -g http-server
 	npm install
 
-init-legacy-node_modules-for-enketo-css-includes:
+# Duplicate node modules that are expected as children of enketo-core by CSS
+# `include` directives
+patch-enketo-legacy-css:
 	! [[ -d node_modules/bootstrap-datepicker ]] || \
 		cp -r node_modules/bootstrap-datepicker node_modules/enketo-core/node_modules/
 	! [[ -d node_modules/bootstrap-slider-basic ]] || \
@@ -52,7 +54,7 @@ www-xslt:
 	mkdir build/www/enketo
 	cp -r node_modules/enketo-client-side-transformer/xslt/client-side/*.xsl build/www/enketo
 
-www-enketo-styles:
+www-enketo-styles: patch-enketo-legacy-css
 	echo '[www-enketo-styles] Sassing...'
 	grunt enketo-sass
 	mkdir -p build/less
