@@ -32,7 +32,7 @@ public class AssetService {
 			}
 			String responseString = bob.toString();
 
-			log("request", "Retrieved: %s", responseString);
+			log("request() :: Retrieved: %s", responseString);
 			return new JSONObject()
 					.put("status", 200)
 					.put("data", responseString)
