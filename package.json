@@ -27,14 +27,14 @@
     "pouchdb": "^6.0.7"
   },
   "devDependencies": {
-    "browserify": "^13.0.0",
-    "grunt": "1.0.x",
+    "browserify": "^13.3.0",
+    "grunt": "^1.0.1",
     "grunt-angular-templates": "^1.1.0",
     "grunt-sass": "^1.2.1",
-    "http-proxy": "^1.13.2",
-    "jshint": "^2.9.1",
-    "less": "^2.6.1",
-    "load-grunt-tasks": "3.x.x",
-    "time-grunt": "1.x.x"
+    "http-proxy": "^1.16.2",
+    "jshint": "^2.9.4",
+    "less": "^2.7.2",
+    "load-grunt-tasks": "^3.5.2",
+    "time-grunt": "^1.4.0"
   }
 }
