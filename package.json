@@ -20,10 +20,10 @@
     "angular": "^1.4.9",
     "angular-ui-router": "^0.3.2",
     "bootstrap": "^3.3.6",
-    "enketo-client-side-transformer": "git://github.com/alxndrsn/enketo-client-side-transformer.git#cb8e9cba8fa9996834be0405ecc96349f0882dd1",
     "enketo-core": "4.15.x",
     "jquery": "^3.1.1",
     "lodash": "^4.17.2",
+    "medic-enketo-xslt": "^1.0.0",
     "pouchdb": "^6.0.7"
   },
   "devDependencies": {

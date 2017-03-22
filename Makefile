@@ -52,7 +52,7 @@ www-static:
 www-xslt:
 	echo '[www-xslt] Copying XSLTs...'
 	mkdir build/www/enketo
-	cp -r node_modules/enketo-client-side-transformer/xslt/client-side/*.xsl build/www/enketo
+	cp -r node_modules/medic-enketo-xslt/xsl/*.xsl build/www/enketo
 
 www-enketo-styles: patch-enketo-legacy-css
 	echo '[www-enketo-styles] Sassing...'
