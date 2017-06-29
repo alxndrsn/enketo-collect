@@ -8,7 +8,7 @@ stats_for() {
 	echo
 }
 
-stats_for android java
+stats_for android/src/main java
 stats_for www less
 stats_for www html
 stats_for www js
