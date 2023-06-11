@@ -24,11 +24,11 @@ init-npm:
 # Duplicate node modules that are expected as children of enketo-core by CSS
 # `include` directives
 patch-enketo-legacy-css:
-	! [[ -d node_modules/bootstrap-datepicker ]] || \
+	! [ -d node_modules/bootstrap-datepicker ] || \
 		cp -r node_modules/bootstrap-datepicker node_modules/enketo-core/node_modules/
-	! [[ -d node_modules/bootstrap-slider-basic ]] || \
+	! [ -d node_modules/bootstrap-slider-basic ] || \
 		cp -r node_modules/bootstrap-slider-basic node_modules/enketo-core/node_modules/
-	! [[ -d node_modules/bootstrap-timepicker ]] || \
+	! [ -d node_modules/bootstrap-timepicker ] || \
 		cp -r node_modules/bootstrap-timepicker node_modules/enketo-core/node_modules/
 
 browse:
