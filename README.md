@@ -6,6 +6,13 @@ Enketo Collect
 [ODK Collect](https://github.com/opendatakit/collect)/[Enketo](https://github.com/enketo/enketo-core) mashup.
 
 
+# Setup
+
+```sh
+make init
+```
+
+
 # Running locally
 
 1. `make www`
