@@ -56,7 +56,7 @@ www-xslt:
 
 www-enketo-styles: patch-enketo-legacy-css
 	echo '[www-enketo-styles] Sassing...'
-	grunt enketo-sass
+	npx grunt enketo-sass
 	mkdir -p build/less
 	cp build/sass/formhub.css build/less/enketo.less
 	echo '[www-enketo-styles] Fixing font paths...'
@@ -73,7 +73,7 @@ www-js:
 	echo '[www-js] Concatting JS...'
 	./node_modules/browserify/bin/cmd.js www/js/main.js -o build/www/bundle.js
 	echo '[www-js] Compiling templates...'
-	grunt compile-templates
+	npx grunt compile-templates
 	cat build/templates.js >> build/www/bundle.js
 
 www-build: ${JSHINT} www-clean www-static www-xslt www-styles www-js
